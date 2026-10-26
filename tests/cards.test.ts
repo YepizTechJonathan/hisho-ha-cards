@@ -3,6 +3,7 @@ import "../src/index";
 import { fakeHass } from "./fake-hass";
 import { hishoDevices } from "../src/model";
 import { generateDashboard } from "../src/strategy";
+import { HA_CARD_GLASS, viewBackground } from "../src/styles";
 
 async function mount(tag: string, config: Record<string, any>, hass = fakeHass()) {
   const el = document.createElement(tag) as any;
@@ -74,13 +75,24 @@ describe("the Hisho dashboard strategy", () => {
     expect(dash.views[0]).toMatchObject({ type: "panel", cards: [{ type: "custom:hisho-control-center-card" }] });
     expect(dash.views.slice(1).every((v) => v.type === "sections" && v.max_columns === 4)).toBe(true);
     const cards = (i: number) => dash.views[i].sections!.map((s) => s.cards);
-    expect(cards(1).map((c) => c[0].machine)).toEqual(["Hashira Ren", "Souko"]);
+    expect(cards(1)[0]).toEqual([{ type: "custom:hisho-pulse-card", grid_options: { columns: "full" } }]); // the pulse first
+    expect(cards(1).slice(1).map((c) => c[0].machine)).toEqual(["Hashira Ren", "Souko"]);
     expect(cards(2).map((c) => c.map((x) => x.heading ?? x.device))).toEqual([["Servers", "ionos"], ["Storage", "truenas"]]);
     const full = { grid_options: { columns: "full" } };
     expect(cards(3)).toEqual([[{ type: "custom:hisho-store-card", ...full }], [{ type: "custom:hisho-device-card", device: "Web Factory" }]]);
-    expect(cards(4)).toEqual([[{ type: "todo-list", entity: "todo.hisho_today", title: "Today" }],
-      [{ type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates", ...full }]]);
+    // Home Assistant's own cards wear the same dark glass (card-mod)
+    const glass = { card_mod: { style: HA_CARD_GLASS } };
+    expect(cards(4)).toEqual([[{ type: "todo-list", entity: "todo.hisho_today", title: "Today", ...glass }],
+      [{ type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates", ...full, ...glass }]]);
     expect(dash.views[2].sections!.map((s) => s.column_span)).toEqual([1, 1]); // as wide as their devices
+  });
+
+  it("puts every view on the forest picture, or on a picture of your own", () => {
+    const own = generateDashboard(fakeHass(), { background: "/local/lake.jpg" });
+    expect(new Set(generateDashboard(fakeHass()).views.map((v) => v.background))).toEqual(new Set([viewBackground()]));
+    expect(viewBackground()).toContain('url("/hisho_static/forest.jpg")');
+    expect(own.views[3].background).toContain('url("/local/lake.jpg")');
+    expect(generateDashboard(fakeHass(), { background: "" }).views[0].background).not.toContain("url(");
   });
 
   it("says how to set Hisho up when it is not there", () => {
@@ -90,27 +102,106 @@ describe("the Hisho dashboard strategy", () => {
 });
 
 describe("control center", () => {
-  it("shows the stats strip, machine tiles and needs you side by side", async () => {
+  it("leads with your day: a greeting, one sentence, decisions, what Hisho is doing", async () => {
     const { root } = await mount("hisho-control-center-card", {});
-    const stats = [...root.querySelectorAll(".stat")].map((s) =>
-      [...s.querySelectorAll("span")].map((x) => x.textContent!.trim()).join(" | "));
-    expect(stats[0]).toBe("Hisho Core | Up | Answering");
-    expect(stats[1]).toBe("Machines online | 2/2 | All up");
-    expect(stats[2]).toBe("Needs you | 1 | 1 critical");
-    expect(root.querySelectorAll(".machines .tile").length).toBe(2);
+    expect(root.querySelector("h1")!.textContent).toMatch(/^Good (morning|afternoon|evening|night)\.$/);
+    expect(root.querySelector(".hello .summary")!.textContent).toBe(
+      "1 urgent thing needs you, 1 project waiting on you, 1 to-do left today. Hisho is working on 1 thing for you.");
+    expect(root.textContent).toContain("Transcribing on Souko"); // working on, in plain words
+    expect(root.textContent).toContain("Security follow-ups"); // a project waiting on you
     const needs = root.querySelector("hisho-needs-you-card") as any;
     await needs.updateComplete;
     await new Promise((r) => setTimeout(r, 0));
     await needs.updateComplete;
     expect(needs.shadowRoot.querySelector("ha-card")).toBeNull(); // embedded: no card inside a card
+    expect(needs.shadowRoot.querySelector(".title")!.textContent).toBe("Needs your decision");
     expect(needs.shadowRoot.textContent).toContain("TrueNAS: pool Potter is unhealthy");
     expect(needs.shadowRoot.textContent).not.toContain("ZFS reports errors"); // compact: the finding opens on a tap
   });
 
-  it("opens a machine tile for its details on a tap", async () => {
+  it("shows every part of the system as a status pill, and opens one in full on a tap", async () => {
     const { el, root } = await mount("hisho-control-center-card", {});
+    expect(root.querySelector(".sysline")!.textContent!.replace(/\s+/g, " ").trim())
+      .toBe("2 of 2 machines up · Sync OK · 1 needs a look · 1 job running");
+    const pills = [...root.querySelectorAll("button.pill")].map((p) => `${p.querySelector(".pn")!.textContent} ${p.querySelector(".ps")!.textContent}`);
+    expect(pills).toEqual(["Hashira Ren up", "Souko up", "ionos on", "truenas problem", "Web Factory ok"]);
+    expect(root.querySelector(".drawer")).toBeNull();
+    (root.querySelectorAll("button.pill")[3] as HTMLElement).click();
+    await el.updateComplete;
+    const card = root.querySelector(".drawer hisho-device-card") as any;
+    expect(card.config).toMatchObject({ device: "truenas", embedded: true });
+    (root.querySelectorAll("button.pill")[0] as HTMLElement).click();
+    await el.updateComplete;
+    expect(root.querySelector(".drawer hisho-machine-card")).not.toBeNull();
+    (root.querySelector(".drawer .close") as HTMLElement).click();
+    await el.updateComplete;
+    expect(root.querySelector(".drawer")).toBeNull();
+  });
+
+  it("lists what Hisho did for you: Core's feed when there is one, else the jobs it finished", async () => {
+    const { doneForYou } = await import("../src/cards/assistant");
+    const hass = fakeHass();
+    const now = Date.parse("2026-10-26T10:00:00Z");
+    hass.states["sensor.hisho_jobs_active"].attributes.jobs = [
+      { id: "j", kind: "install", status: "done", worker: "hashira-ren", updated_at: "2026-10-26T08:00:00Z" },
+      { id: "k", kind: "transcribe", status: "done", worker: "souko", updated_at: "2026-10-24T08:00:00Z" }]; // too old
+    expect(doneForYou(hass, now)).toEqual([{ what: "Installed on Hashira Ren", when: "2 h ago" }]);
+    hass.states["sensor.hisho_done"] = { entity_id: "sensor.hisho_done", state: "1", attributes: { items: [
+      { at: "2026-10-26T09:30:00Z", event: "host-sleep", text: "Parked Proxmox3 while nothing needed it" }] } };
+    hass.entities["sensor.hisho_done"] = { entity_id: "sensor.hisho_done", device_id: "hub", platform: "hisho",
+      translation_key: "done_for_you" };
+    hass.entities = { ...hass.entities }; // a new registry: Hisho's devices are indexed again
+    expect(doneForYou(hass, now)).toEqual([{ what: "Parked Proxmox3 while nothing needed it", when: "30 min ago" }]);
+  });
+
+  it("asks Hisho through Home Assistant's conversation agent and shows the answer", async () => {
+    const hass = fakeHass();
+    hass.states["conversation.hisho"] = { entity_id: "conversation.hisho", state: "x", attributes: {} };
+    hass.entities["conversation.hisho"] = { entity_id: "conversation.hisho", device_id: "hub", platform: "hisho",
+      translation_key: "assistant" };
+    const { root } = await mount("hisho-control-center-card", {}, hass);
+    const ask = root.querySelector("hisho-ask") as any;
+    await ask.updateComplete;
+    hass.callWS.mockResolvedValueOnce({ conversation_id: "c1", response: { speech: { plain: { speech: "Potter has 224 errors." } } } });
+    ask.shadowRoot.querySelector("input").value = "How is Potter?";
+    ask.shadowRoot.querySelector("form").dispatchEvent(new Event("submit", { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    await ask.updateComplete;
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "conversation/process", text: "How is Potter?",
+      agent_id: "conversation.hisho", conversation_id: undefined, language: "en" });
+    expect(ask.shadowRoot.querySelector(".answer .a").textContent).toBe("Potter has 224 errors.");
+  });
+
+  it("ticks off one of today's to-dos", async () => {
+    const hass = fakeHass();
+    hass.callWS.mockImplementation(async (msg: any) => msg.entity_id === "todo.hisho_today"
+      ? { items: [{ uid: "t1", summary: "Swap the disk", status: "needs_action" }] } : { items: [] });
+    const { root } = await mount("hisho-control-center-card", {}, hass);
+    const day = root.querySelector("hisho-day") as any;
+    await new Promise((r) => setTimeout(r, 0));
+    await day.updateComplete;
+    expect(day.shadowRoot.textContent).toContain("Swap the disk");
+    (day.shadowRoot.querySelector("button.tick") as HTMLElement).click();
+    expect(hass.callService).toHaveBeenCalledWith("todo", "update_item", { item: "t1", status: "completed" },
+      { entity_id: "todo.hisho_today" });
+  });
+});
+
+describe("pulse card", () => {
+  it("shows the fleet's numbers with their last day", async () => {
+    const { root } = await mount("hisho-pulse-card", {});
+    const live = [...root.querySelectorAll(".lt")].map((t) =>
+      [".lv", ".ll", ".ls"].map((c) => t.querySelector(c)!.textContent!.trim()).join(" | "));
+    expect(live.slice(0, 2)).toEqual(["2/2 | Machines online | All up", "1 | Needs you | 1 critical"]);
+    expect(root.querySelectorAll("hisho-spark").length).toBe(3); // no sync-conflicts entity in this fleet
+  });
+});
+
+describe("machine tiles", () => {
+  it("opens a machine tile for its details on a tap", async () => {
+    const { el, root } = await mount("hisho-fleet-card", {});
     expect(root.querySelector(".kv")).toBeNull();
-    (root.querySelector(".tile .row.spread") as HTMLElement).click();
+    (root.querySelector(".tile .mhead") as HTMLElement).click();
     await el.updateComplete;
     expect(root.querySelector(".tile .kv")).not.toBeNull();
   });
@@ -282,3 +373,24 @@ describe("performance", () => {
   });
 });
 
+
+describe("sparklines", () => {
+  it("buckets history, carrying the last value forward", async () => {
+    const { bucket } = await import("../src/spark");
+    expect(bucket([[0, 10], [30, 20], [80, 5]], 0, 100, 4)).toEqual([10, 20, 20, 5]);
+    expect(bucket([], 0, 100, 4)).toEqual([]);
+  });
+
+  it("asks the recorder for a day of one entity, once for every card", async () => {
+    const { series } = await import("../src/spark");
+    const hass = fakeHass();
+    const now = Date.parse("2026-10-26T10:00:00Z");
+    hass.callWS.mockResolvedValue({ "sensor.x": [{ s: "40", lu: (now - 20 * 3600_000) / 1000 }, { s: "unavailable", lu: (now - 3600_000) / 1000 }] });
+    const points = await series(hass, "sensor.x", 24, 4, now);
+    await series(hass, "sensor.x", 24, 4, now + 1000);
+    expect(points).toEqual([40, 40, 40, 40]);
+    expect(hass.callWS).toHaveBeenCalledTimes(1);
+    expect(hass.callWS.mock.calls[0][0]).toMatchObject({ type: "history/history_during_period", entity_ids: ["sensor.x"],
+      minimal_response: true, no_attributes: true, start_time: "2026-10-25T10:00:00.000Z" });
+  });
+});

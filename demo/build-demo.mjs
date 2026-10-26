@@ -30,6 +30,7 @@ await build({ ...common, outfile: "demo/overview.js", stdin: { resolveDir: "demo
     add("sensor.ten_state", "ten", "machine_state", "parked", { machine: "hashira-ten", power: ["wake"], reason: "parked: idle 30 min" });
     add("binary_sensor.ten_online", "ten", "online", "off"); add("switch.ten_maint", "ten", "maintenance", "off");
     add("sensor.ren_disk", "ren", "disk_usage", "35"); add("sensor.ren_gpu", "ren", "gpu_usage", "62");
+    add("sensor.ten_mem", "ten", "memory_usage", "9"); add("sensor.ten_disk", "ten", "disk_usage", "41");
     add("sensor.souko_mem", "souko", "memory_usage", "11"); add("sensor.souko_disk", "souko", "disk_usage", "4");
     add("sensor.souko_gpu", "souko", "gpu_usage", "6"); add("switch.souko_maint", "souko", "maintenance", "off");
     hass.states["sensor.hisho_machines_online"].state = "3";
@@ -39,12 +40,63 @@ await build({ ...common, outfile: "demo/overview.js", stdin: { resolveDir: "demo
       { id: "a3", severity: "decision", title: "Rotate the reused password everywhere it was used" },
       { id: "a4", severity: "warn", title: "Semaphore: Authorized Keys - Manual Guarded failed" },
       { id: "a5", severity: "warn", title: "PatriotPoint: SAM.gov renewal due October 29" }];
-    hass.callWS = async () => ({ items: [
+    hass.user = { id: "u", name: "Jonathan Yepiz", is_admin: true };
+    hass.config = { time_zone: "America/Los_Angeles" };
+    add("binary_sensor.hisho_sync_problem", "hub", "sync_problem", "off");
+    add("sensor.hisho_sync_conflicts", "hub", "sync_conflicts", "0");
+    add("sensor.hisho_projects_waiting", "hub", "projects_waiting", "2");
+    const todo = { items: [
       { uid: "a1", summary: "TrueNAS: pool Potter is unhealthy", status: "needs_action",
         description: "CRITICAL: Pool Potter is online but ZFS reports 224 data errors from the last scrub.\\n\\nClaude: disk sdh, or its cable; the disks also run hot (57 °C)." },
       { uid: "a3", summary: "Rotate the reused password everywhere it was used", status: "needs_action", description: "DECISION: Security follow-ups" },
       { uid: "a4", summary: "Semaphore: Authorized Keys - Manual Guarded failed", status: "needs_action", description: "WARN: failed on October 25" },
-      { uid: "a5", summary: "PatriotPoint: SAM.gov renewal due October 29", status: "needs_action", description: "WARN: confirm it was approved" }] });
+      { uid: "a5", summary: "PatriotPoint: SAM.gov renewal due October 29", status: "needs_action", description: "WARN: confirm it was approved" }] };
+    // A made-up day of history for the sparklines: a smooth wander around today's value, steps for counts.
+    const day = (id) => {
+      const now = Date.now() / 1000, cur = parseFloat(hass.states[id]?.state ?? "0") || 0;
+      let h = 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) % 9973;
+      const count = /online|needs|jobs|conflicts/.test(id);
+      return Array.from({ length: 49 }, (_, i) => {
+        const t = i / 48, w = Math.sin(t * 9 + h) * 0.5 + Math.sin(t * 23 + h * 2) * 0.3 + Math.sin(t * 3 + h) * 0.6;
+        const v = count ? Math.max(0, Math.round(cur + w * 1.3 * (i < 46 ? 1 : 0)))
+          : Math.max(0, Math.min(100, cur + w * Math.max(4, cur * 0.35) * (i < 48 ? 1 : 0)));
+        return { s: String(v), lu: now - (48 - i) * 1800 };
+      });
+    };
+    // Your day, what Hisho did, and Ask Hisho
+    const iso = (min) => new Date(Date.now() - min * 60000).toISOString();
+    add("conversation.hisho", "hub", "assistant", "2026-10-26T09:00:00Z");
+    add("sensor.hisho_done_for_you", "hub", "done_for_you", "5", { items: [
+      { at: iso(25), event: "answered", text: "Answered 3 questions for you" },
+      { at: iso(95), event: "job-transition", text: "Installed on Hashira Ren" },
+      { at: iso(160), event: "alert-investigate", text: "Looked into “TrueNAS: pool Potter is unhealthy”: disk sdh, or its cable; the disks also run hot (57 °C)" },
+      { at: iso(240), event: "host-sleep", text: "Parked Hashira Ten while nothing needed it" },
+      { at: iso(420), event: "today-note", text: "Wrote today's note" }] });
+    hass.states["todo.hisho_today"].state = "3";
+    hass.states["sensor.hisho_jobs_active"].attributes.jobs = [
+      { id: "job-1", kind: "transcribe", status: "running", worker: "souko", updated_at: iso(12) },
+      { id: "job-2", kind: "transcribe", status: "failed", worker: "souko", reason: "no input", updated_at: iso(300) },
+      { id: "job-3", kind: "install", status: "done", worker: "hashira-ren", updated_at: iso(95) },
+      { id: "job-4", kind: "transcribe", status: "done", worker: "hashira-ten", updated_at: iso(420) },
+    ];
+    hass.states["sensor.hisho_projects_active"].attributes.projects = [
+      { name: "ha", title: "Hisho in Home Assistant", status: "active", waiting_on: "claude", next: "Assistant-first Overview" },
+      { name: "sec", title: "Security follow-ups", status: "active", waiting_on: "jonathan", asks: ["Rotate the reused password"] },
+      { name: "pp", title: "Patriot Point website", status: "active", waiting_on: "jonathan", asks: ["Approve the new home page"] },
+    ];
+    const today = { items: [
+      { uid: "t1", summary: "Swap the failing disk in Potter (ZX212N0K)", status: "needs_action" },
+      { uid: "t2", summary: "Confirm the SAM.gov renewal for Patriot Point", status: "needs_action" },
+      { uid: "t3", summary: "Send Randy the Web Factory notes", status: "needs_action" },
+      { uid: "t4", summary: "Review the Hisho dashboard redesign", status: "completed" }] };
+    const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+    hass.callApi = async (method, path) => path.startsWith("calendars/") ? [
+      { summary: "PatriotPoint: SAM.gov renewal", start: { date: d(3) } },
+      { summary: "YepizTech: Golden Coast invoice", start: { date: d(5) } },
+      { summary: "Skybuilders: site launch", start: { date: d(11) } }] : [];
+    hass.callWS = async (msg) => msg.type === "history/history_during_period"
+      ? Object.fromEntries(msg.entity_ids.map((id) => [id, day(id)]))
+      : msg.type === "todo/item/list" && msg.entity_id === "todo.hisho_today" ? today : todo;
     const el = document.createElement("hisho-control-center-card");
     el.setConfig({ type: "custom:hisho-control-center-card" }); el.hass = hass;
     document.getElementById("panel").appendChild(el);` } });

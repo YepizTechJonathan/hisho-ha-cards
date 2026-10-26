@@ -2,6 +2,7 @@
 // integration's devices, so it grows with the fleet. "Take control" turns it into a normal, editable one.
 import type { HomeAssistant, LovelaceCardConfig } from "./hass";
 import { byKind, entityId, hub } from "./model";
+import { HA_CARD_GLASS, viewBackground } from "./styles";
 
 interface Section {
   type: "grid";
@@ -18,6 +19,17 @@ interface View {
   sections?: Section[];
   max_columns?: number;
   dense_section_placement?: boolean;
+  background?: string;
+}
+
+export interface StrategyConfig {
+  /** The dashboard's picture: a URL ("/local/my-photo.jpg"), or "" for none (just the colours). */
+  background?: string;
+}
+
+/** Home Assistant's own cards in Hisho's dark glass, when card-mod is installed (without it they keep the theme). */
+function glass(card: LovelaceCardConfig): LovelaceCardConfig {
+  return { ...card, card_mod: { style: HA_CARD_GLASS } };
 }
 
 /** A card that fills a wide section (otherwise a card takes one column of it). */
@@ -37,7 +49,7 @@ const KIND_TITLE: Record<string, string> = {
   Server: "Servers", Vm: "Virtual machines", Storage: "Storage", Device: "Devices", Network: "Network",
 };
 
-export function generateDashboard(hass: HomeAssistant): { title: string; views: View[] } {
+export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = {}): { title: string; views: View[] } {
   const h = hub(hass);
   if (!h) {
     return {
@@ -61,14 +73,16 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
     groups.set(kind, [...(groups.get(kind) ?? []), b.name]);
   }
 
-  return {
-    title: "Hisho",
-    views: [
+  const background = viewBackground(config.background);
+  const views: View[] = [
       // The Control Center fills the screen: a panel view is one card, full width.
       { title: "Overview", path: "overview", icon: "mdi:view-dashboard", type: "panel",
         cards: [{ type: "custom:hisho-control-center-card" }] },
-      sections({ title: "Machines", path: "machines", icon: "mdi:server" },
-        machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }])),
+      // The system lives here, not on the Overview: the fleet's pulse across the top, then each machine.
+      sections({ title: "Machines", path: "machines", icon: "mdi:server" }, [
+        { type: "grid", column_span: 4, cards: [{ type: "custom:hisho-pulse-card", ...FULL }] },
+        ...machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }]),
+      ]),
       // A group as wide as its devices (up to the four columns), its cards side by side inside it.
       sections({ title: "Devices", path: "devices", icon: "mdi:devices" },
         KIND_ORDER.filter((k) => groups.has(k)).map((k) => ({
@@ -81,25 +95,26 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
         ...addons.map((a) => [{ type: "custom:hisho-device-card", device: a.name }]),
       ]),
       ...(todayList || dueDates ? [sections({ title: "Today", path: "today", icon: "mdi:calendar-today" }, [
-        todayList ? [{ type: "todo-list", entity: todayList, title: "Today" }] : [],
+        todayList ? [glass({ type: "todo-list", entity: todayList, title: "Today" })] : [],
         dueDates ? { type: "grid" as const, column_span: 3, cards: [
-          { type: "calendar", entities: [dueDates], initial_view: "dayGridMonth", title: "Due dates", ...FULL }] } : [],
+          glass({ type: "calendar", entities: [dueDates], initial_view: "dayGridMonth", title: "Due dates", ...FULL })] } : [],
       ])] : []),
       sections({ title: "Projects", path: "projects", icon: "mdi:folder-multiple" }, [
         { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-projects-card", ...FULL }] },
         { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-jobs-card", title: "All jobs", limit: 50, ...FULL }] },
       ]),
       sections({ title: "Phone", path: "phone", icon: "mdi:cellphone-message" }, [[
-        { type: "entities", title: "Hisho phone app", entities: phone },
-        { type: "markdown", content: "Send a message to the Hisho phone app from an automation or script with " +
-          "`notify.send_message` on the **Hisho Phone app** entity." },
+        glass({ type: "entities", title: "Hisho phone app", entities: phone }),
+        glass({ type: "markdown", content: "Send a message to the Hisho phone app from an automation or script with " +
+          "`notify.send_message` on the **Hisho Phone app** entity." }),
       ]]),
-    ],
-  };
+  ];
+  // Every view on the same picture, so moving between them feels like one place.
+  return { title: "Hisho", views: views.map((v) => ({ ...v, background })) };
 }
 
 export class HishoDashboardStrategy extends HTMLElement {
-  static async generate(_config: Record<string, any>, hass: HomeAssistant) {
-    return generateDashboard(hass);
+  static async generate(config: StrategyConfig & Record<string, any>, hass: HomeAssistant) {
+    return generateDashboard(hass, config);
   }
 }
