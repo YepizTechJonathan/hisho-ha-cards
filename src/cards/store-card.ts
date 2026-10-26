@@ -29,7 +29,8 @@ export class HishoStoreCard extends HishoCard {
       <ul class="list">${sorted.map((a) => html`<li>
         <div class="row spread"><span>${a.title}</span>
           <span class="chip ${a.update_available ? "warn" : a.installed ? "ok" : "off"}">${a.update_available
-            ? `${a.installed_version} → ${a.version}` : a.installed ? `v${a.installed_version}` : `v${a.version}`}</span></div>
+            ? (a.installed_version === a.version ? `v${a.version} · update available` : `${a.installed_version} → ${a.version}`)
+            : a.installed ? `v${a.installed_version}` : `v${a.version}`}</span></div>
         ${a.description ? html`<div class="detail">${a.description}</div>` : ""}
         <div class="row">
           ${!a.installed && can.has("store.install") ? html`<button class="act" @click=${() =>

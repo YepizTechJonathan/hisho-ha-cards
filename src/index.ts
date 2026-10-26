@@ -7,7 +7,7 @@ import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
 import { HishoStoreCard } from "./cards/store-card";
 import { HishoDashboardStrategy } from "./strategy";
 
-export const VERSION = "0.3.1";
+export const VERSION = "0.3.2";
 
 const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-fleet-card", HishoFleetCard, "Hisho fleet", "Every machine: state, readings, wake / park, maintenance."],
