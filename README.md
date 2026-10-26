@@ -23,9 +23,26 @@ strategy:
   type: custom:hisho
 ```
 
-Views: **Overview** (fleet, needs you, jobs, Hisho's status), **Machines**, **Devices** (servers, VMs,
+Views: **Overview** (a greeting with the day and one sentence on how things are, status badges, live tiles with
+their last 24 hours, machines, needs you, jobs), **Machines**, **Devices** (servers, VMs,
 storage...), **Add-ons**, **Projects**, **Phone**. It follows your fleet: a new machine or box appears on its
 own. To change it, ⋮ › *Take control* and edit it like any dashboard.
+
+### The look
+
+Dark glass cards over a misty pine forest at dusk, with forest green and warm brown accents. The picture comes with
+the Hisho integration (v1.7.0 or later, served at `/hisho_static/forest.jpg`; without it the dashboard shows the same
+colours as a gradient). To use a photo of your own, put it in `config/www/` and give the strategy its address:
+
+```yaml
+strategy:
+  type: custom:hisho
+  background: /local/my-photo.jpg   # or "" for no picture
+```
+
+With [card-mod](https://github.com/thomasloven/lovelace-card-mod) installed, Home Assistant's own cards on the dashboard
+(Today's list, the calendar, the phone settings) wear the same glass. A theme can change the accents through
+`--hisho-theme-accent`, `--hisho-theme-brown` and `--hisho-theme-glass`.
 
 ## Cards
 
@@ -55,5 +72,7 @@ npm ci
 npm test            # vitest, cards against a fake hass shaped like the real integration
 npm run typecheck
 npm run build       # dist/hisho-ha-cards.js (commit it: HACS serves it)
+cp <hisho-ha>/custom_components/hisho/www/forest.jpg demo/   # the picture, for the demo pages
 node demo/build-demo.mjs && (cd demo && python3 -m http.server)   # every card with fake data
+NODE_PATH=$(npm root -g) node art/forest.mjs forest.jpg 2560 1440  # redraws the picture (Playwright)
 ```

@@ -3,8 +3,9 @@ import { html } from "lit";
 import { HishoCard } from "../base";
 import { allowed, available, entities, entity, entityId, findDevice, friendly } from "../model";
 import { moreInfo, press, runAction, toggle } from "../actions";
-import { stateClass } from "../styles";
-import { meters } from "./fleet-card";
+import { pct, stateClass } from "../styles";
+import { machineIcon } from "./fleet-card";
+import { icon, ring } from "../ui";
 
 export class HishoMachineCard extends HishoCard {
   static getStubConfig(hass: any) {
@@ -35,13 +36,19 @@ export class HishoMachineCard extends HishoCard {
       return available(s) ? html`<div class="row spread"><span class="muted">${label}</span>
         <span>${s.state}${s.attributes.unit_of_measurement ? " " + s.attributes.unit_of_measurement : ""}</span></div>` : "";
     };
+    const isOn = entity(hass, m, "online")?.state === "on";
+    const tone = stateClass(state?.state);
+    const readings = [["Mem", "memory_usage"], ["Disk", "disk_usage"], ["GPU", "gpu_usage"]]
+      .map(([label, key]) => [label, pct(entity(hass, m, key)?.state)] as const)
+      .filter((r): r is readonly [string, number] => r[1] !== undefined);
     return html`<ha-card>
-      <div class="head">
-        <div class="title">${this.config.title ?? m.name}</div>
-        <span class="chip ${stateClass(state?.state)}">${state?.state ?? "unknown"}</span>
+      <div class="mhead" style="margin-bottom:14px">
+        <span class="bubble ${isOn ? (tone === "ok" ? "accent" : tone) : "off"}">${icon(machineIcon(m), "")}</span>
+        <span class="grow"><span class="name">${this.config.title ?? m.name}</span>
+          ${state?.attributes.role ? html`<span class="muted ellipsis sub">${state.attributes.role}</span>` : ""}</span>
+        <span class="chip ${tone}">${state?.state ?? "unknown"}</span>
       </div>
-      ${state?.attributes.role ? html`<div class="muted">${state.attributes.role}</div>` : ""}
-      <div style="margin:6px 0 8px">${meters(hass, m)}</div>
+      ${readings.length ? html`<div class="rings" style="margin-bottom:12px">${readings.map(([label, v]) => ring(label, v))}</div>` : ""}
       ${row("awake", "Parking")} ${row("jobs_running", "Jobs running")} ${row("jobs_queued", "Jobs queued")}
       ${row("containers_running", "Containers")} ${row("sync_connected", "Sync")}
       <div class="row" style="margin-top:8px">
@@ -55,7 +62,7 @@ export class HishoMachineCard extends HishoCard {
             toggle(this, hass, maint, !on, on ? undefined : `Put ${m.name} in maintenance? Its alerts are held and its VM shuts down.`);
           }}>${hass.states[maint]?.state === "on" ? "End maintenance" : "Maintenance"}</button>` : ""}
       </div>
-      ${services.length || units.length ? html`<div class="title" style="margin-top:14px;font-size:1em">Services</div>` : ""}
+      ${services.length || units.length ? html`<div class="eyebrow" style="margin-top:18px">Services</div>` : ""}
       <ul class="list">
         ${services.map((s) => html`<li><div class="row spread"><span>${friendly(s, m)}</span>
           <span class="chip ${s.state === "on" ? "ok" : "bad"}">${s.state === "on" ? "running" : s.attributes.state ?? "stopped"}</span></div></li>`)}
@@ -71,7 +78,7 @@ export class HishoMachineCard extends HishoCard {
           </span></div></li>`;
         })}
       </ul>
-      ${items.length ? html`<div class="title" style="margin-top:14px;font-size:1em">From add-ons</div>` : ""}
+      ${items.length ? html`<div class="eyebrow" style="margin-top:18px">From add-ons</div>` : ""}
       <ul class="list">${items.map((it) => html`<li>
         <div class="row spread"><span>${it.name}</span><span class="chip ${stateClass(it.state)}">${it.state}</span></div>
         ${it.facts?.length ? html`<div class="detail">${it.facts.join(" · ")}</div>` : ""}
@@ -79,7 +86,7 @@ export class HishoMachineCard extends HishoCard {
           <button class="act ${a.danger ? "danger" : ""}" @click=${() => runAction(this, hass, "device.press", it.addon,
             { entry: it.entry, item: it.id, action: a.id }, a.danger ? `${a.label}: ${it.name} on ${m.name}?` : undefined)}>${a.label}</button>`)}</div>` : ""}
       </li>`)}</ul>
-      <div class="muted" style="margin-top:8px;cursor:pointer" @click=${() => state && moreInfo(this, state.entity_id)}>History…</div>
+      <button class="link" style="margin-top:12px;font-size:0.86em" @click=${() => state && moreInfo(this, state.entity_id)}>History…</button>
     </ha-card>`;
   }
 }

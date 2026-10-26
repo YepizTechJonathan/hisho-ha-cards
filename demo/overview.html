@@ -8,13 +8,15 @@
   body { margin:0 !important; font-family: Roboto, system-ui, sans-serif; background:#f0f0f0; margin:16px; }
   ha-card { display:block; background:var(--card-background-color); border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.12); }
   #grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap:16px; align-items:start; }
-  #panel { padding: 8px; }
+  #panel { padding: 0; }
+  body.dark { background: linear-gradient(rgba(6, 10, 7, 0.22), rgba(6, 10, 7, 0.5)), url("forest.jpg") center / cover no-repeat fixed,
+    #0a110d; min-height: 100vh; }
 </style></head><body class="dark"><div id="panel"></div>
 <script>
   // Home Assistant provides <ha-card>; this stand-in gives the demo the same frame.
   customElements.define("ha-card", class extends HTMLElement {
     constructor() { super(); const r = this.attachShadow({mode: "open"});
-      r.innerHTML = `<style>:host{display:block;background:var(--card-background-color);border-radius:12px;
+      r.innerHTML = `<style>:host{display:block;background:var(--ha-card-background,var(--card-background-color));border-radius:12px;
         box-shadow:0 2px 6px rgba(0,0,0,.14);color:var(--primary-text-color)}</style><slot></slot>`; }
   });
 </script><script type="module" src="overview.js"></script></body></html>

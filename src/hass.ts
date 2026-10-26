@@ -37,6 +37,7 @@ export interface HomeAssistant {
               notifyOnError?: boolean, returnResponse?: boolean): Promise<any>;
   callWS<T = any>(msg: Record<string, any>): Promise<T>;
   themes?: { darkMode?: boolean };
+  config?: { time_zone?: string };
   user?: { id: string; name: string; is_admin: boolean };
 }
 

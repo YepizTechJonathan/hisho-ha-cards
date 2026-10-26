@@ -1,24 +1,17 @@
-// hisho-fleet-card: every machine at a glance, with wake / park and maintenance. Its compact tile is also the
-// Control Center's: a status stripe, three slim meters, the power buttons inline; tap the name for the details.
+// hisho-fleet-card: every machine at a glance, with wake / park and maintenance. Its tile is also the Control
+// Center's: the machine in a coloured circle, its readings as rings, power buttons, and its last day as a sparkline.
 import { html, type TemplateResult } from "lit";
 import { HishoCard } from "../base";
 import { allowed, available, byKind, entities, entity, entityId, hub, type HishoDevice } from "../model";
 import { moreInfo, runAction, toggle } from "../actions";
 import { pct, stateClass } from "../styles";
 import type { HomeAssistant } from "../hass";
-
-export function meter(label: string, value: string | undefined): TemplateResult {
-  const n = pct(value);
-  if (n === undefined) return html``;
-  return html`<div class="meter"><div class="mlabel"><span>${label}</span><b>${Math.round(n)}%</b></div>
-    <div class="bar ${n >= 95 ? "full" : n >= 85 ? "high" : ""}"><span style="width:${n}%"></span></div></div>`;
-}
-
-export function meters(hass: HomeAssistant, m: HishoDevice): TemplateResult {
-  const parts = [["Mem", "memory_usage"], ["Disk", "disk_usage"], ["GPU", "gpu_usage"]]
-    .filter(([, key]) => pct(entity(hass, m, key)?.state) !== undefined);
-  return parts.length ? html`<div class="meters">${parts.map(([label, key]) => meter(label, entity(hass, m, key)?.state))}</div>` : html``;
-}
+import { icon, ring } from "../ui";
+import "../spark";
+import {
+  mdiChevronRight, mdiDesktopTowerMonitor, mdiExpansionCardVariant, mdiPower, mdiPowerSleep, mdiServer, mdiServerNetwork,
+  mdiWrenchOutline,
+} from "@mdi/js";
 
 /** Cards that show machine tiles: which tiles are open. */
 export interface TileHost extends HishoCard {
@@ -26,7 +19,23 @@ export interface TileHost extends HishoCard {
   flip(id: string): void;
 }
 
-/** The machine tile shared by the fleet card and the Control Center. */
+const MACHINE_ICONS: [RegExp, string][] = [
+  [/gpu/i, mdiExpansionCardVariant], [/workstation|desktop/i, mdiDesktopTowerMonitor],
+  [/control|core/i, mdiServerNetwork], [/tools|nas|storage/i, mdiServer],
+];
+
+export function machineIcon(m: HishoDevice): string {
+  return MACHINE_ICONS.find(([re]) => re.test(m.model))?.[1] ?? mdiServer;
+}
+
+/** The reading whose last 24 hours a machine tile draws: the GPU on a GPU box, else memory. */
+function sparkReading(m: HishoDevice): [string, string] | undefined {
+  const gpu = entityId(m, "gpu_usage"), mem = entityId(m, "memory_usage");
+  return /gpu/i.test(m.model) && gpu ? [gpu, "GPU"] : mem ? [mem, "Memory"] : gpu ? [gpu, "GPU"] : undefined;
+}
+
+/** The machine tile shared by the fleet card and the Control Center: who it is and how it is, its readings as
+ *  rings, its power buttons, and its last 24 hours along the bottom. Tap the head for the details. */
 export function machineTile(card: TileHost, m: HishoDevice): TemplateResult {
   const hass = card.hass;
   const state = entity(hass, m, "machine_state");
@@ -38,41 +47,48 @@ export function machineTile(card: TileHost, m: HishoDevice): TemplateResult {
   const maint = entityId(m, "maintenance");
   const inMaint = maint ? hass.states[maint]?.state === "on" : false;
   const isOpen = card.expanded.has(m.id);
+  const isOn = online?.state === "on";
   const sub = available(parking) ? parking.state
-    : state?.attributes.reason && online?.state !== "on" ? String(state.attributes.reason) : state?.attributes.role ?? "";
-  const tone = inMaint ? "decide" : stateClass(state?.state);
+    : state?.attributes.reason && !isOn ? String(state.attributes.reason) : state?.attributes.role ?? "";
+  const tone = inMaint ? "brown" : stateClass(state?.state);
   const kv = (key: string, label: string) => {
     const s = entity(hass, m, key);
     return available(s) ? html`<span>${label}</span><span>${s.state}${s.attributes.unit_of_measurement ? " " + s.attributes.unit_of_measurement : ""}</span>` : "";
   };
   const services = entities(hass, m, "service");
   const down = services.filter((s) => s.state !== "on").length;
-  return html`<div class="tile ${tone}">
-    <div class="row spread" style="cursor:pointer" @click=${() => card.flip(m.id)}>
-      <span class="row grow" style="flex-wrap:nowrap"><span class="dot ${online?.state === "on" ? "on" : "offline"}"></span>
-        <span class="name">${m.name}</span></span>
-      <span class="row" style="flex-wrap:nowrap"><span class="chip ${tone}">${inMaint ? "maintenance" : state?.state ?? "unknown"}</span>
-        <span class="chev ${isOpen ? "open" : ""}">▶</span></span>
+  const readings = [["Mem", "memory_usage"], ["Disk", "disk_usage"], ["GPU", "gpu_usage"]]
+    .map(([label, key]) => [label, pct(entity(hass, m, key)?.state)] as const)
+    .filter((r): r is readonly [string, number] => r[1] !== undefined);
+  const spark = sparkReading(m);
+  return html`<div class="tile mtile ${tone} ${isOn ? "" : "asleep"}">
+    <div class="mhead" @click=${() => card.flip(m.id)}>
+      <span class="bubble ${isOn ? (tone === "ok" ? "accent" : tone) : "off"}">${icon(machineIcon(m), "")}</span>
+      <span class="grow"><span class="name">${m.name}</span>${sub ? html`<span class="muted ellipsis sub">${sub}</span>` : ""}</span>
+      <span class="chip ${tone}">${inMaint ? "maintenance" : state?.state ?? "unknown"}</span>
+      <span class="chev ${isOpen ? "open" : ""}">${icon(mdiChevronRight, "")}</span>
     </div>
-    ${sub ? html`<span class="muted ellipsis">${sub}</span>` : ""}
-    ${meters(hass, m)}
+    ${readings.length ? html`<div class="rings">${readings.map(([label, v]) => ring(label, v))}</div>` : ""}
     ${isOpen ? html`<div class="kv">
         ${kv("jobs_running", "Jobs running")} ${kv("jobs_queued", "Jobs queued")}
         ${kv("containers_running", "Containers")} ${kv("sync_connected", "Sync")}
         ${services.length ? html`<span>Services</span><span>${services.length - down} of ${services.length} running</span>` : ""}
       </div>` : ""}
-    <div class="row">
+    <div class="row acts">
       ${power.includes("wake") && can.has("machine.wake")
-        ? html`<button class="act" @click=${() => runAction(card, hass, "machine.wake", target)}>Wake</button>` : ""}
+        ? html`<button class="act" @click=${() => runAction(card, hass, "machine.wake", target)}>${icon(mdiPower, "")}Wake</button>` : ""}
       ${power.includes("park") && can.has("machine.park")
         ? html`<button class="act danger" @click=${() => runAction(card, hass, "machine.park", target, {},
-            `Park ${m.name}? It powers off until something needs it.`)}>Park</button>` : ""}
-      ${maint ? html`<button class="act ${inMaint ? "on" : ""}" title="Maintenance holds its alerts and auto-park"
+            `Park ${m.name}? It powers off until something needs it.`)}>${icon(mdiPowerSleep, "")}Park</button>` : ""}
+      ${maint ? html`<button class="act ${inMaint ? "brown" : ""}" title="Maintenance holds its alerts and auto-park"
           @click=${() => toggle(card, hass, maint, !inMaint, inMaint ? undefined
-            : `Put ${m.name} in maintenance? Its alerts are held and its VM shuts down.`)}>${inMaint ? "End maintenance" : "Maintenance"}</button>` : ""}
+            : `Put ${m.name} in maintenance? Its alerts are held and its VM shuts down.`)}>${icon(mdiWrenchOutline, "")}${inMaint ? "End maintenance" : "Maintenance"}</button>` : ""}
       ${isOpen && state ? html`<button class="link" style="margin-left:auto;font-size:0.82em"
           @click=${() => moreInfo(card, state.entity_id)}>History…</button>` : ""}
     </div>
+    ${spark ? html`<div class="sparkwrap"><span class="sparkl">${spark[1]} · 24 h</span>
+      <hisho-spark .hass=${hass} .entity=${spark[0]} .min=${0} .max=${100}
+        .tone=${tone === "bad" ? "var(--hisho-crit)" : "var(--hisho-accent-text)"}></hisho-spark></div>` : ""}
   </div>`;
 }
 

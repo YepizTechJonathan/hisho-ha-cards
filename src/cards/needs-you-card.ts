@@ -5,6 +5,11 @@ import { HishoCard } from "../base";
 import { allowed, entity, entityId, hub } from "../model";
 import { runAction } from "../actions";
 import { stateClass } from "../styles";
+import { icon } from "../ui";
+import {
+  mdiAlarmSnooze, mdiAlertCircleOutline, mdiAlertOctagonOutline, mdiCellphoneMessage, mdiCheck, mdiCheckCircleOutline,
+  mdiChevronRight, mdiHelpCircleOutline, mdiInformationOutline, mdiMagnify,
+} from "@mdi/js";
 
 interface TodoItem {
   uid: string;
@@ -14,6 +19,9 @@ interface TodoItem {
 }
 
 const SEVERITY_CLASS: Record<string, string> = { critical: "bad", decision: "decide", warn: "warn", info: "off" };
+const SEVERITY_ICON: Record<string, string> = {
+  critical: mdiAlertOctagonOutline, decision: mdiHelpCircleOutline, warn: mdiAlertCircleOutline, info: mdiInformationOutline,
+};
 
 export class HishoNeedsYouCard extends HishoCard {
   static properties = { ...HishoCard.properties, items: { state: true }, showDone: { state: true },
@@ -68,25 +76,29 @@ export class HishoNeedsYouCard extends HishoCard {
           ${this.showDone ? "Hide" : "Show"} ${done} acknowledged</button>` : ""}</span></div>
       ${pairing.map((p) => html`<div class="tile decide" style="margin-bottom:8px"><span class="row"><span class="chip decide">decide</span>
         <span>${p.title}</span></span><span class="muted">Approve it in Hisho's own Needs you (or the phone notification).</span></div>`)}
-      ${todo.length ? "" : html`<div class="empty">Nothing needs you right now.</div>`}
+      ${todo.length ? "" : html`<div class="empty">${icon(mdiCheckCircleOutline, "")}Nothing needs you right now.</div>`}
       <ul class="list">${shown.map((i) => {
         const sev = severity.get(i.uid) ?? (i.description?.split(":")[0] || "").toLowerCase();
         const acked = i.status === "completed";
         const isOpen = !this.config.compact || this.expanded.has(i.uid);
-        return html`<li class="item ${acked ? "off" : stateClass(sev === "warn" ? "warn" : sev)}">
+        const tone = acked ? "off" : SEVERITY_CLASS[sev] ?? stateClass(sev);
+        return html`<li class="item bubbled ${tone}">
+          <span class="bubble sm ${tone}">${icon(SEVERITY_ICON[sev] ?? mdiInformationOutline, "")}</span>
+          <div class="bodycol">
           <div class="row spread" style="cursor:${this.config.compact ? "pointer" : "default"}" @click=${() => this.flip(i.uid)}>
-            <span class="row grow" style="flex-wrap:nowrap"><span class="chip ${acked ? "off" : SEVERITY_CLASS[sev] ?? stateClass(sev)}">${acked ? "acknowledged" : sev || "alert"}</span>
-              <span class=${this.config.compact && !isOpen ? "ellipsis" : ""}>${i.summary}</span></span>
-            ${this.config.compact ? html`<span class="chev ${isOpen ? "open" : ""}">▶</span>` : ""}</div>
+            <span class="grow"><span class="summary ${this.config.compact && !isOpen ? "ellipsis" : ""}">${i.summary}</span>
+              <span class="chip ${tone} plain sev">${acked ? "acknowledged" : sev || "alert"}</span></span>
+            ${this.config.compact ? html`<span class="chev ${isOpen ? "open" : ""}">${icon(mdiChevronRight, "")}</span>` : ""}</div>
           ${isOpen && i.description ? html`<div class="detail">${i.description.replace(/^[A-Z]+:\s*/, "")}</div>` : ""}
           ${isOpen && can.has("alert.ack") ? html`<div class="row">
             ${acked
               ? html`<button class="act" @click=${() => this.alert(i.uid, "unack")}>Un-acknowledge</button>`
-              : html`<button class="act" @click=${() => this.alert(i.uid, "ack")}>Acknowledge</button>
-                     <button class="act" @click=${() => this.alert(i.uid, "snooze")}>Snooze 1 h</button>`}
-            <button class="act" @click=${() => this.alert(i.uid, "investigate")}>Investigate</button>
-            <button class="act" @click=${() => this.alert(i.uid, "notify")}>Send to phone</button>
+              : html`<button class="act primary" @click=${() => this.alert(i.uid, "ack")}>${icon(mdiCheck, "")}Acknowledge</button>
+                     <button class="act" @click=${() => this.alert(i.uid, "snooze")}>${icon(mdiAlarmSnooze, "")}Snooze 1 h</button>`}
+            <button class="act" @click=${() => this.alert(i.uid, "investigate")}>${icon(mdiMagnify, "")}Investigate</button>
+            <button class="act" @click=${() => this.alert(i.uid, "notify")}>${icon(mdiCellphoneMessage, "")}Send to phone</button>
           </div>` : ""}
+          </div>
         </li>`;
       })}</ul>
       ${todo.length > shown.length || this.showAll ? html`<button class="link" style="margin-top:6px;font-size:0.86em"

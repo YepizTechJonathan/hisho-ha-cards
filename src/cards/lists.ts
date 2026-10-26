@@ -4,6 +4,13 @@ import { HishoCard } from "../base";
 import { allowed, entity, hub } from "../model";
 import { runAction } from "../actions";
 import { stateClass } from "../styles";
+import { icon } from "../ui";
+import { mdiAlertCircleOutline, mdiCheckCircleOutline, mdiCogOutline, mdiCogSyncOutline, mdiTimerSandEmpty } from "@mdi/js";
+
+const JOB_ICON: Record<string, string> = {
+  running: mdiCogSyncOutline, queued: mdiTimerSandEmpty, routed: mdiTimerSandEmpty, failed: mdiAlertCircleOutline,
+  done: mdiCheckCircleOutline,
+};
 
 export class HishoJobsCard extends HishoCard {
   static getStubConfig() {
@@ -18,10 +25,13 @@ export class HishoJobsCard extends HishoCard {
     return this.frame(html`
       <div class="head">${this.heading("Jobs")}
         ${can.has("jobs.reap") ? html`<button class="act" @click=${() => runAction(this, hass, "jobs.reap")}>Fail stuck jobs</button>` : ""}</div>
-      ${jobs.length ? "" : html`<div class="empty">No jobs.</div>`}
+      ${jobs.length ? "" : html`<div class="empty">${icon(mdiCheckCircleOutline, "")}No jobs.</div>`}
       <ul class="list">${jobs.slice(0, limit).map((j) => {
         const live = ["queued", "routed", "running"].includes(j.status);
-        return html`<li class="item ${stateClass(j.status)}">
+        const tone = stateClass(j.status);
+        return html`<li class="item bubbled ${tone}">
+          <span class="bubble sm ${tone === "ok" ? "accent" : tone}">${icon(JOB_ICON[j.status] ?? mdiCogOutline, "")}</span>
+          <div class="bodycol">
           <div class="row spread"><span class="ellipsis">${j.kind}${j.worker ? html` <span class="muted">on ${j.worker}</span>` : ""}</span>
             <span class="row" style="flex-wrap:nowrap">
             ${live && can.has("job.cancel") ? html`<button class="act danger" @click=${() =>
@@ -32,6 +42,7 @@ export class HishoJobsCard extends HishoCard {
               runAction(this, hass, "job.clear", j.id)}>Clear</button>` : ""}
             <span class="chip ${stateClass(j.status)}">${j.status}</span></span></div>
           ${j.reason ? html`<div class="detail">${j.reason}</div>` : ""}
+          </div>
         </li>`;
       })}</ul>
       ${jobs.length > limit ? html`<div class="muted" style="margin-top:6px">${jobs.length - limit} more on the Projects page</div>` : ""}
