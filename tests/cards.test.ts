@@ -200,3 +200,20 @@ describe("Hisho's setup (phase D)", () => {
   });
 });
 
+describe("performance", () => {
+  it("does not re-render for state changes outside Hisho", async () => {
+    const { el, hass } = await mount("hisho-fleet-card", {});
+    let renders = 0;
+    const original = el.render.bind(el);
+    el.render = () => { renders += 1; return original(); };
+    el.hass = { ...hass, states: { ...hass.states, "light.kitchen": { entity_id: "light.kitchen", state: "on", attributes: {} } } };
+    await el.updateComplete;
+    expect(renders).toBe(0);
+    const ren = "sensor.hashira_ren_parking";
+    el.hass = { ...el.hass, states: { ...el.hass.states, [ren]: { ...el.hass.states[ren], state: "parks in 1m" } } };
+    await el.updateComplete;
+    expect(renders).toBe(1);
+    expect(el.shadowRoot.textContent).toContain("parks in 1m");
+  });
+});
+

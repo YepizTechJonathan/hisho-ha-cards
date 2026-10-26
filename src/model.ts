@@ -19,7 +19,24 @@ const KIND_BY_KEY: [string, Kind][] = [
   ["addon_status", "addon"],
 ];
 
+// Home Assistant hands every card a new `hass` on each state change (often several a second), but its entity and
+// device registries only change when devices do. Index Hisho's devices once per registry, not on every update.
+const cache = new WeakMap<object, { devices: object; list: HishoDevice[] }>();
+
 export function hishoDevices(hass: HomeAssistant): HishoDevice[] {
+  const hit = cache.get(hass.entities ?? {});
+  if (hit && hit.devices === hass.devices) return hit.list;
+  const list = indexDevices(hass);
+  if (hass.entities) cache.set(hass.entities, { devices: hass.devices, list });
+  return list;
+}
+
+/** Every Hisho entity id (what a card's re-render depends on). */
+export function hishoEntityIds(hass: HomeAssistant): string[] {
+  return hishoDevices(hass).flatMap((d) => Object.values(d.entities).flat());
+}
+
+function indexDevices(hass: HomeAssistant): HishoDevice[] {
   const byDevice = new Map<string, Record<string, string[]>>();
   for (const entry of Object.values(hass.entities || {})) {
     if (entry.platform !== "hisho" || !entry.device_id || !entry.translation_key) continue;

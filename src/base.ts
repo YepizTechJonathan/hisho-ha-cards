@@ -2,7 +2,8 @@
 import { LitElement, html, type CSSResultGroup, type TemplateResult } from "lit";
 import type { HomeAssistant, LovelaceCardConfig } from "./hass";
 import { cardStyles } from "./styles";
-import { hub } from "./model";
+import { hishoEntityIds, hub } from "./model";
+import type { PropertyValues } from "lit";
 
 export abstract class HishoCard extends LitElement {
   static properties = { hass: { attribute: false }, config: { attribute: false } };
@@ -13,6 +14,16 @@ export abstract class HishoCard extends LitElement {
   setConfig(config: LovelaceCardConfig) {
     if (!config) throw new Error("Invalid configuration");
     this.config = config;
+  }
+
+  /** Re-render only when one of Hisho's entities changed (or the config, the user, the registries). */
+  protected shouldUpdate(changed: PropertyValues): boolean {
+    if (!changed.has("hass") || changed.size > 1) return true;
+    const old = changed.get("hass") as HomeAssistant | undefined;
+    if (!old || old.entities !== this.hass.entities || old.devices !== this.hass.devices || old.user !== this.hass.user) {
+      return true;
+    }
+    return hishoEntityIds(this.hass).some((id) => old.states[id] !== this.hass.states[id]);
   }
 
   getCardSize(): number {
