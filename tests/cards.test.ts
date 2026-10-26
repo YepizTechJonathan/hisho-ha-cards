@@ -51,9 +51,11 @@ describe("the Hisho dashboard strategy", () => {
     const cards = (i: number) => dash.views[i].sections!.map((s) => s.cards);
     expect(cards(1).map((c) => c[0].machine)).toEqual(["Hashira Ren", "Souko"]);
     expect(cards(2).map((c) => c.map((x) => x.heading ?? x.device))).toEqual([["Servers", "ionos"], ["Storage", "truenas"]]);
-    expect(cards(3)).toEqual([[{ type: "custom:hisho-store-card" }], [{ type: "custom:hisho-device-card", device: "Web Factory" }]]);
+    const full = { grid_options: { columns: "full" } };
+    expect(cards(3)).toEqual([[{ type: "custom:hisho-store-card", ...full }], [{ type: "custom:hisho-device-card", device: "Web Factory" }]]);
     expect(cards(4)).toEqual([[{ type: "todo-list", entity: "todo.hisho_today", title: "Today" }],
-      [{ type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates" }]]);
+      [{ type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates", ...full }]]);
+    expect(dash.views[2].sections!.map((s) => s.column_span)).toEqual([1, 1]); // as wide as their devices
   });
 
   it("says how to set Hisho up when it is not there", () => {

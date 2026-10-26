@@ -20,6 +20,9 @@ interface View {
   dense_section_placement?: boolean;
 }
 
+/** A card that fills a wide section (otherwise a card takes one column of it). */
+const FULL = { grid_options: { columns: "full" } };
+
 /** HA's sections view: its sections are columns that fill a wide screen (up to four here) and stack on a phone. */
 function sections(view: Omit<View, "type" | "sections">, groups: (LovelaceCardConfig[] | Section)[]): View {
   return {
@@ -66,23 +69,25 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
         cards: [{ type: "custom:hisho-control-center-card" }] },
       sections({ title: "Machines", path: "machines", icon: "mdi:server" },
         machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }])),
+      // A group as wide as its devices (up to the four columns), its cards side by side inside it.
       sections({ title: "Devices", path: "devices", icon: "mdi:devices" },
-        KIND_ORDER.filter((k) => groups.has(k)).map((k) => [
-          { type: "heading", heading: KIND_TITLE[k] },
-          ...groups.get(k)!.map((name) => ({ type: "custom:hisho-device-card", device: name })),
-        ])),
+        KIND_ORDER.filter((k) => groups.has(k)).map((k) => ({
+          type: "grid" as const, column_span: Math.min(4, groups.get(k)!.length), cards: [
+            { type: "heading", heading: KIND_TITLE[k] },
+            ...groups.get(k)!.map((name) => ({ type: "custom:hisho-device-card", device: name })),
+          ] }))),
       sections({ title: "Add-ons", path: "addons", icon: "mdi:puzzle" }, [
-        ...(entityId(h, "addon_updates") ? [{ type: "grid" as const, column_span: 2, cards: [{ type: "custom:hisho-store-card" }] }] : []),
+        ...(entityId(h, "addon_updates") ? [{ type: "grid" as const, column_span: 2, cards: [{ type: "custom:hisho-store-card", ...FULL }] }] : []),
         ...addons.map((a) => [{ type: "custom:hisho-device-card", device: a.name }]),
       ]),
       ...(todayList || dueDates ? [sections({ title: "Today", path: "today", icon: "mdi:calendar-today" }, [
         todayList ? [{ type: "todo-list", entity: todayList, title: "Today" }] : [],
         dueDates ? { type: "grid" as const, column_span: 3, cards: [
-          { type: "calendar", entities: [dueDates], initial_view: "dayGridMonth", title: "Due dates" }] } : [],
+          { type: "calendar", entities: [dueDates], initial_view: "dayGridMonth", title: "Due dates", ...FULL }] } : [],
       ])] : []),
       sections({ title: "Projects", path: "projects", icon: "mdi:folder-multiple" }, [
-        { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-projects-card" }] },
-        { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-jobs-card", title: "All jobs", limit: 50 }] },
+        { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-projects-card", ...FULL }] },
+        { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-jobs-card", title: "All jobs", limit: 50, ...FULL }] },
       ]),
       sections({ title: "Phone", path: "phone", icon: "mdi:cellphone-message" }, [[
         { type: "entities", title: "Hisho phone app", entities: phone },
