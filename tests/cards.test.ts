@@ -194,6 +194,16 @@ describe("jobs and projects cards", () => {
 });
 
 describe("Hisho's setup (phase D)", () => {
+  it("treats an add-on with no settings (null from Hisho) as having none, without throwing", async () => {
+    const { fields } = await import("../src/cards/settings");
+    expect(fields(null, null)).toEqual([]);
+    expect(fields({ token: "password?" }, null)[0]).toMatchObject({ key: "token", type: "password", optional: true });
+    const hass = fakeHass();
+    hass.states["sensor.web_factory_status"].attributes.settings = { schema: null, options: null, entry_schema: null, entry_form: null };
+    const { root } = await mount("hisho-device-card", { device: "Web Factory" }, hass);
+    expect(root.textContent).toContain("Deploy dev now");
+  });
+
   it("saves only changed settings and refuses a secret value", async () => {
     const { root, hass } = await mount("hisho-device-card", { device: "Web Factory" });
     const form = root.querySelector("form.settings") as HTMLFormElement;

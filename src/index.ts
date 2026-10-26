@@ -8,7 +8,7 @@ import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
 import { HishoStoreCard } from "./cards/store-card";
 import { HishoDashboardStrategy } from "./strategy";
 
-export const VERSION = "0.4.1";
+export const VERSION = "0.4.2";
 
 const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-control-center-card", HishoControlCenterCard, "Hisho control center",

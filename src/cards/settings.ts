@@ -11,8 +11,10 @@ export interface Field {
   label: string;
 }
 
-export function fields(schema: Record<string, string> = {}, labels: Record<string, string> = {}): Field[] {
-  return Object.entries(schema).map(([key, raw]) => {
+/** Hisho sends null (not a missing key) for an add-on without settings or entries: both mean "none". */
+export function fields(schema?: Record<string, string> | null, labels?: Record<string, string> | null): Field[] {
+  const names = labels ?? {};
+  return Object.entries(schema ?? {}).map(([key, raw]) => {
     const optional = raw.endsWith("?");
     const base = raw.replace(/\?$/, "");
     const list = /^list\((.*)\)$/.exec(base);
@@ -21,7 +23,7 @@ export function fields(schema: Record<string, string> = {}, labels: Record<strin
       type: list ? "list" : base,
       optional,
       choices: list ? list[1].split("|").map((c) => c.trim()).filter(Boolean) : [],
-      label: labels[key] ?? key.replace(/_/g, " "),
+      label: names[key] ?? key.replace(/_/g, " "),
     };
   });
 }
