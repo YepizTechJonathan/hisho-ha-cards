@@ -1,5 +1,6 @@
 // Registers the Hisho cards and the Hisho dashboard strategy with Home Assistant's frontend.
 import { HishoFleetCard } from "./cards/fleet-card";
+import { HishoControlCenterCard } from "./cards/control-center";
 import { HishoMachineCard } from "./cards/machine-card";
 import { HishoNeedsYouCard } from "./cards/needs-you-card";
 import { HishoDeviceCard } from "./cards/device-card";
@@ -7,9 +8,11 @@ import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
 import { HishoStoreCard } from "./cards/store-card";
 import { HishoDashboardStrategy } from "./strategy";
 
-export const VERSION = "0.3.2";
+export const VERSION = "0.4.0";
 
 const CARDS: [string, CustomElementConstructor, string, string][] = [
+  ["hisho-control-center-card", HishoControlCenterCard, "Hisho control center",
+    "Hisho's Overview in one wide card: stats, machine tiles, needs you and jobs. Best in a panel view."],
   ["hisho-fleet-card", HishoFleetCard, "Hisho fleet", "Every machine: state, readings, wake / park, maintenance."],
   ["hisho-machine-card", HishoMachineCard, "Hisho machine", "One machine in full: readings, services, its add-on buttons."],
   ["hisho-needs-you-card", HishoNeedsYouCard, "Hisho needs you", "Hisho's needs-you list: acknowledge, snooze, investigate."],

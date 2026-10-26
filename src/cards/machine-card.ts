@@ -4,7 +4,7 @@ import { HishoCard } from "../base";
 import { allowed, available, entities, entity, entityId, findDevice, friendly } from "../model";
 import { moreInfo, press, runAction, toggle } from "../actions";
 import { stateClass } from "../styles";
-import { meter } from "./fleet-card";
+import { meters } from "./fleet-card";
 
 export class HishoMachineCard extends HishoCard {
   static getStubConfig(hass: any) {
@@ -41,9 +41,7 @@ export class HishoMachineCard extends HishoCard {
         <span class="chip ${stateClass(state?.state)}">${state?.state ?? "unknown"}</span>
       </div>
       ${state?.attributes.role ? html`<div class="muted">${state.attributes.role}</div>` : ""}
-      ${meter("Memory", entity(hass, m, "memory_usage")?.state)}
-      ${meter("Disk", entity(hass, m, "disk_usage")?.state)}
-      ${meter("GPU", entity(hass, m, "gpu_usage")?.state)}
+      <div style="margin:6px 0 8px">${meters(hass, m)}</div>
       ${row("awake", "Parking")} ${row("jobs_running", "Jobs running")} ${row("jobs_queued", "Jobs queued")}
       ${row("containers_running", "Containers")} ${row("sync_connected", "Sync")}
       <div class="row" style="margin-top:8px">

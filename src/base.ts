@@ -30,6 +30,16 @@ export abstract class HishoCard extends LitElement {
     return 4;
   }
 
+  /** HA's sections view: a Hisho card takes its section's full width (sections are the columns). */
+  getGridOptions(): { columns: number | "full"; min_columns: number } {
+    return { columns: 12, min_columns: 6 };
+  }
+
+  /** The card's frame: an ha-card, or a plain block when the Control Center embeds it (no card in a card). */
+  protected frame(inner: TemplateResult): TemplateResult {
+    return this.config.embedded ? html`<div class="embedded">${inner}</div>` : html`<ha-card>${inner}</ha-card>`;
+  }
+
   /** The card body; called only when the Hisho integration is set up. */
   protected abstract body(): TemplateResult;
 

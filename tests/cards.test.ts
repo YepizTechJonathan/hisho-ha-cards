@@ -45,19 +45,47 @@ describe("the Hisho dashboard strategy", () => {
   it("builds a view per area from what the integration reports", () => {
     const dash = generateDashboard(fakeHass());
     expect(dash.views.map((v) => v.path)).toEqual(["overview", "machines", "devices", "addons", "today", "projects", "phone"]);
-    expect(dash.views[4].cards).toEqual([
-      { type: "todo-list", entity: "todo.hisho_today", title: "Today" },
-      { type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates" }]);
-    expect(dash.views[1].cards.map((c) => c.machine)).toEqual(["Hashira Ren", "Souko"]);
-    const devices = dash.views[2].cards.map((c) => c.heading ?? c.device);
-    expect(devices).toEqual(["Servers", "ionos", "Storage", "truenas"]);
-    expect(dash.views[3].cards).toEqual([{ type: "custom:hisho-store-card" },
-      { type: "custom:hisho-device-card", device: "Web Factory" }]);
+    // the Overview is the Control Center, full width; the rest are sections views (columns that fill the screen)
+    expect(dash.views[0]).toMatchObject({ type: "panel", cards: [{ type: "custom:hisho-control-center-card" }] });
+    expect(dash.views.slice(1).every((v) => v.type === "sections" && v.max_columns === 4)).toBe(true);
+    const cards = (i: number) => dash.views[i].sections!.map((s) => s.cards);
+    expect(cards(1).map((c) => c[0].machine)).toEqual(["Hashira Ren", "Souko"]);
+    expect(cards(2).map((c) => c.map((x) => x.heading ?? x.device))).toEqual([["Servers", "ionos"], ["Storage", "truenas"]]);
+    expect(cards(3)).toEqual([[{ type: "custom:hisho-store-card" }], [{ type: "custom:hisho-device-card", device: "Web Factory" }]]);
+    expect(cards(4)).toEqual([[{ type: "todo-list", entity: "todo.hisho_today", title: "Today" }],
+      [{ type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates" }]]);
   });
 
   it("says how to set Hisho up when it is not there", () => {
     const dash = generateDashboard(fakeHass({ noHisho: true }));
-    expect(dash.views[0].cards[0].content).toContain("Add integration");
+    expect(dash.views[0].cards![0].content).toContain("Add integration");
+  });
+});
+
+describe("control center", () => {
+  it("shows the stats strip, machine tiles and needs you side by side", async () => {
+    const { root } = await mount("hisho-control-center-card", {});
+    const stats = [...root.querySelectorAll(".stat")].map((s) =>
+      [...s.querySelectorAll("span")].map((x) => x.textContent!.trim()).join(" | "));
+    expect(stats[0]).toBe("Hisho Core | Up | Answering");
+    expect(stats[1]).toBe("Machines online | 2/2 | All up");
+    expect(stats[2]).toBe("Needs you | 1 | 1 critical");
+    expect(root.querySelectorAll(".machines .tile").length).toBe(2);
+    const needs = root.querySelector("hisho-needs-you-card") as any;
+    await needs.updateComplete;
+    await new Promise((r) => setTimeout(r, 0));
+    await needs.updateComplete;
+    expect(needs.shadowRoot.querySelector("ha-card")).toBeNull(); // embedded: no card inside a card
+    expect(needs.shadowRoot.textContent).toContain("TrueNAS: pool Potter is unhealthy");
+    expect(needs.shadowRoot.textContent).not.toContain("ZFS reports errors"); // compact: the finding opens on a tap
+  });
+
+  it("opens a machine tile for its details on a tap", async () => {
+    const { el, root } = await mount("hisho-control-center-card", {});
+    expect(root.querySelector(".kv")).toBeNull();
+    (root.querySelector(".tile .row.spread") as HTMLElement).click();
+    await el.updateComplete;
+    expect(root.querySelector(".tile .kv")).not.toBeNull();
   });
 });
 
