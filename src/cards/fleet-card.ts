@@ -29,7 +29,7 @@ export function machineIcon(m: HishoDevice): string {
 }
 
 /** The reading whose last 24 hours a machine tile draws: the GPU on a GPU box, else memory. */
-function sparkReading(m: HishoDevice): [string, string] | undefined {
+export function sparkReading(m: HishoDevice): [string, string] | undefined {
   const gpu = entityId(m, "gpu_usage"), mem = entityId(m, "memory_usage");
   return /gpu/i.test(m.model) && gpu ? [gpu, "GPU"] : mem ? [mem, "Memory"] : gpu ? [gpu, "GPU"] : undefined;
 }

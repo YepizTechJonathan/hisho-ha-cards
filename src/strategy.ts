@@ -78,8 +78,11 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
       // The Control Center fills the screen: a panel view is one card, full width.
       { title: "Overview", path: "overview", icon: "mdi:view-dashboard", type: "panel",
         cards: [{ type: "custom:hisho-control-center-card" }] },
-      sections({ title: "Machines", path: "machines", icon: "mdi:server" },
-        machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }])),
+      // The system lives here, not on the Overview: the fleet's pulse across the top, then each machine.
+      sections({ title: "Machines", path: "machines", icon: "mdi:server" }, [
+        { type: "grid", column_span: 4, cards: [{ type: "custom:hisho-pulse-card", ...FULL }] },
+        ...machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }]),
+      ]),
       // A group as wide as its devices (up to the four columns), its cards side by side inside it.
       sections({ title: "Devices", path: "devices", icon: "mdi:devices" },
         KIND_ORDER.filter((k) => groups.has(k)).map((k) => ({

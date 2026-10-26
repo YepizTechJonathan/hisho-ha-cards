@@ -58,6 +58,11 @@ export const cardStyles = css`
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .embedded { container-type: inline-size; }
+  /* One machine in full: side by side when there's room (readings | services), stacked when not. */
+  .mcard { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  .mright:empty { display: none; }
+  .kvrow { font-size: 0.9em; padding: 3px 0; max-width: 420px; }
+  @container (min-width: 760px) { .mcard { grid-template-columns: minmax(300px, 420px) 1fr; gap: 28px; } }
   @container (max-width: 400px) { ul.list .row.spread { flex-wrap: wrap; } }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; min-height: 28px; }
   .title { font-size: 0.8em; font-weight: 600; color: var(--hisho-brown-text); letter-spacing: 0.12em; text-transform: uppercase; }
@@ -193,6 +198,37 @@ export const cardStyles = css`
   .detail { color: var(--hisho-text-2); font-size: 0.86em; white-space: pre-wrap; line-height: 1.45; }
   .empty { color: var(--hisho-text-2); padding: 10px 2px; font-size: 0.92em; display: flex; align-items: center; gap: 8px; }
   .empty svg { width: 18px; height: 18px; fill: var(--hisho-ok); }
+  /* Your day: to-dos with a round tick, and dates coming due. */
+  ul.todos, ul.dues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  ul.todos li { display: flex; align-items: flex-start; gap: 11px; padding: 9px 2px; border-top: 1px solid var(--hisho-line); line-height: 1.4; }
+  ul.todos li:first-child { border-top: none; }
+  button.tick { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; cursor: pointer; padding: 0;
+    border: 1.5px solid var(--hisho-accent-text); background: transparent; transition: background 0.15s; }
+  button.tick:hover { background: color-mix(in srgb, var(--hisho-accent) 45%, transparent); }
+  ul.dues li { display: flex; align-items: center; gap: 10px; padding: 6px 0; min-width: 0; }
+  ul.dues .when { font-size: 0.8em; color: var(--hisho-brown-text); white-space: nowrap; font-weight: 500; }
+  form.addrow { display: flex; gap: 8px; margin-bottom: 10px; }
+  form.addrow input, form.ask input {
+    flex: 1; min-width: 0; font: inherit; color: var(--hisho-text); background: var(--hisho-inset); border: 1px solid var(--hisho-edge);
+    border-radius: 999px; padding: 8px 14px; outline: none;
+  }
+  form.addrow input:focus, form.ask input:focus { border-color: color-mix(in srgb, var(--hisho-accent-text) 60%, transparent); }
+  /* Ask Hisho: one line to type in, the answer under it. */
+  form.ask { display: flex; align-items: center; gap: 10px; }
+  form.ask input { padding: 11px 16px; font-size: 1em; background: rgba(0, 0, 0, 0.25); }
+  form.ask input::placeholder, form.addrow input::placeholder { color: var(--hisho-text-2); }
+  button.send { flex: none; width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; color: #fff;
+    background: var(--hisho-accent); display: inline-flex; align-items: center; justify-content: center; }
+  button.send svg { width: 20px; height: 20px; fill: currentColor; }
+  button.send[disabled] { opacity: 0.5; }
+  .answer { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .answer .q { align-self: flex-end; background: color-mix(in srgb, var(--hisho-accent) 35%, transparent); padding: 6px 12px;
+    border-radius: 14px 14px 4px 14px; font-size: 0.9em; max-width: 85%; }
+  .answer .a { background: var(--hisho-inset); padding: 9px 13px; border-radius: 14px 14px 14px 4px; font-size: 0.92em;
+    line-height: 1.45; white-space: pre-wrap; max-width: 92%; }
+  .thinking { display: inline-flex; align-items: center; gap: 6px; color: var(--hisho-text-2); }
+  .thinking svg { width: 16px; height: 16px; fill: currentColor; animation: hisho-spin 1.4s linear infinite; }
+  @keyframes hisho-spin { to { transform: rotate(360deg); } }
   .switch { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.86em; }
   .switch input { accent-color: var(--hisho-accent); width: 15px; height: 15px; }
   .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 0.84em; }

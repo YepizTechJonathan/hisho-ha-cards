@@ -36,6 +36,7 @@ export interface HomeAssistant {
   callService(domain: string, service: string, data?: Record<string, any>, target?: Record<string, any>,
               notifyOnError?: boolean, returnResponse?: boolean): Promise<any>;
   callWS<T = any>(msg: Record<string, any>): Promise<T>;
+  callApi?<T = any>(method: "GET" | "POST", path: string, data?: Record<string, any>): Promise<T>;
   themes?: { darkMode?: boolean };
   config?: { time_zone?: string };
   user?: { id: string; name: string; is_admin: boolean };

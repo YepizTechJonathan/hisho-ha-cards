@@ -6,6 +6,8 @@ import { HishoNeedsYouCard } from "./cards/needs-you-card";
 import { HishoDeviceCard } from "./cards/device-card";
 import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
 import { HishoStoreCard } from "./cards/store-card";
+import { HishoPulseCard } from "./cards/pulse-card";
+import "./cards/assistant";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
@@ -15,7 +17,8 @@ registerIcons();
 
 const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-control-center-card", HishoControlCenterCard, "Hisho control center",
-    "Hisho's Overview in one wide card: stats, machine tiles, needs you and jobs. Best in a panel view."],
+    "Hisho's Overview in one wide card: your day, decisions, what Hisho is doing and did, Ask Hisho. Best in a panel view."],
+  ["hisho-pulse-card", HishoPulseCard, "Hisho pulse", "Machines online, needs you, jobs, sync conflicts, with their last 24 hours."],
   ["hisho-fleet-card", HishoFleetCard, "Hisho fleet", "Every machine: state, readings, wake / park, maintenance."],
   ["hisho-machine-card", HishoMachineCard, "Hisho machine", "One machine in full: readings, services, its add-on buttons."],
   ["hisho-needs-you-card", HishoNeedsYouCard, "Hisho needs you", "Hisho's needs-you list: acknowledge, snooze, investigate."],

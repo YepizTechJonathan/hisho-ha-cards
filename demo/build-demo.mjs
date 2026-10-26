@@ -63,8 +63,40 @@ await build({ ...common, outfile: "demo/overview.js", stdin: { resolveDir: "demo
         return { s: String(v), lu: now - (48 - i) * 1800 };
       });
     };
+    // Your day, what Hisho did, and Ask Hisho
+    const iso = (min) => new Date(Date.now() - min * 60000).toISOString();
+    add("conversation.hisho", "hub", "assistant", "2026-10-26T09:00:00Z");
+    add("sensor.hisho_done_for_you", "hub", "done_for_you", "5", { items: [
+      { at: iso(25), event: "answered", text: "Answered 3 questions for you" },
+      { at: iso(95), event: "job-transition", text: "Installed on Hashira Ren" },
+      { at: iso(160), event: "alert-investigate", text: "Looked into “TrueNAS: pool Potter is unhealthy”: disk sdh, or its cable; the disks also run hot (57 °C)" },
+      { at: iso(240), event: "host-sleep", text: "Parked Hashira Ten while nothing needed it" },
+      { at: iso(420), event: "today-note", text: "Wrote today's note" }] });
+    hass.states["todo.hisho_today"].state = "3";
+    hass.states["sensor.hisho_jobs_active"].attributes.jobs = [
+      { id: "job-1", kind: "transcribe", status: "running", worker: "souko", updated_at: iso(12) },
+      { id: "job-2", kind: "transcribe", status: "failed", worker: "souko", reason: "no input", updated_at: iso(300) },
+      { id: "job-3", kind: "install", status: "done", worker: "hashira-ren", updated_at: iso(95) },
+      { id: "job-4", kind: "transcribe", status: "done", worker: "hashira-ten", updated_at: iso(420) },
+    ];
+    hass.states["sensor.hisho_projects_active"].attributes.projects = [
+      { name: "ha", title: "Hisho in Home Assistant", status: "active", waiting_on: "claude", next: "Assistant-first Overview" },
+      { name: "sec", title: "Security follow-ups", status: "active", waiting_on: "jonathan", asks: ["Rotate the reused password"] },
+      { name: "pp", title: "Patriot Point website", status: "active", waiting_on: "jonathan", asks: ["Approve the new home page"] },
+    ];
+    const today = { items: [
+      { uid: "t1", summary: "Swap the failing disk in Potter (ZX212N0K)", status: "needs_action" },
+      { uid: "t2", summary: "Confirm the SAM.gov renewal for Patriot Point", status: "needs_action" },
+      { uid: "t3", summary: "Send Randy the Web Factory notes", status: "needs_action" },
+      { uid: "t4", summary: "Review the Hisho dashboard redesign", status: "completed" }] };
+    const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+    hass.callApi = async (method, path) => path.startsWith("calendars/") ? [
+      { summary: "PatriotPoint: SAM.gov renewal", start: { date: d(3) } },
+      { summary: "YepizTech: Golden Coast invoice", start: { date: d(5) } },
+      { summary: "Skybuilders: site launch", start: { date: d(11) } }] : [];
     hass.callWS = async (msg) => msg.type === "history/history_during_period"
-      ? Object.fromEntries(msg.entity_ids.map((id) => [id, day(id)])) : todo;
+      ? Object.fromEntries(msg.entity_ids.map((id) => [id, day(id)]))
+      : msg.type === "todo/item/list" && msg.entity_id === "todo.hisho_today" ? today : todo;
     const el = document.createElement("hisho-control-center-card");
     el.setConfig({ type: "custom:hisho-control-center-card" }); el.hass = hass;
     document.getElementById("panel").appendChild(el);` } });

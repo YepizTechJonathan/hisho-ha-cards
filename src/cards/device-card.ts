@@ -45,7 +45,7 @@ export class HishoDeviceCard extends HishoCard {
     const power = entity(hass, dev, "box_state");
     const health = entity(hass, dev, "box_health");
     const can = allowed(hass);
-    return html`<ha-card>
+    return this.frame(html`
       <div class="head"><div class="title">${this.config.title ?? dev.name}</div>
         <span class="row"><span class="chip ${stateClass(power?.state)}">${power?.state ?? "unknown"}</span>
           <span class="chip ${stateClass(health?.state)}">${health?.state ?? "unknown"}</span></span></div>
@@ -63,7 +63,7 @@ export class HishoDeviceCard extends HishoCard {
         </li>`;
       })}</ul>
       <div class="row" style="margin-top:8px">${this.maintenance(dev, dev.name)}</div>
-    </ha-card>`;
+    `);
   }
 
   private addon(dev: HishoDevice) {
@@ -72,7 +72,7 @@ export class HishoDeviceCard extends HishoCard {
     const enabled = entityId(dev, "addon_enabled");
     const a = status?.attributes ?? {};
     const allowedNow = allowed(hass);
-    return html`<ha-card>
+    return this.frame(html`
       <div class="head"><div class="title">${this.config.title ?? dev.name}</div>
         <span class="chip ${stateClass(status?.state)}">${status?.state ?? "unknown"}</span></div>
       <div class="muted">${[a.kind, a.version && "v" + a.version, a.host && "on " + a.host].filter(Boolean).join(" · ")}</div>
@@ -89,7 +89,7 @@ export class HishoDeviceCard extends HishoCard {
         }}>${hass.states[enabled]?.state === "on" ? "Turn off" : "Turn on"}</button>` : ""}
       </div>
       ${allowedNow.has("addon.config") ? this.settings(a) : ""}
-    </ha-card>`;
+    `);
   }
 
   private settings(a: Record<string, any>) {

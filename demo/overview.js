@@ -305,10 +305,10 @@ var N = (t3, i5) => {
   let n4, l3 = 2 === i5 ? "<svg>" : 3 === i5 ? "<math>" : "", c4 = v;
   for (let i6 = 0; i6 < s4; i6++) {
     const s5 = t3[i6];
-    let a3, u3, d3 = -1, f3 = 0;
-    for (; f3 < s5.length && (c4.lastIndex = f3, u3 = c4.exec(s5), null !== u3); ) f3 = c4.lastIndex, c4 === v ? "!--" === u3[1] ? c4 = _ : void 0 !== u3[1] ? c4 = m : void 0 !== u3[2] ? (y2.test(u3[2]) && (n4 = RegExp("</" + u3[2], "g")), c4 = p2) : void 0 !== u3[3] && (c4 = p2) : c4 === p2 ? ">" === u3[0] ? (c4 = n4 ?? v, d3 = -1) : void 0 === u3[1] ? d3 = -2 : (d3 = c4.lastIndex - u3[2].length, a3 = u3[1], c4 = void 0 === u3[3] ? p2 : '"' === u3[3] ? $ : g) : c4 === $ || c4 === g ? c4 = p2 : c4 === _ || c4 === m ? c4 = v : (c4 = p2, n4 = void 0);
+    let a3, u3, d4 = -1, f3 = 0;
+    for (; f3 < s5.length && (c4.lastIndex = f3, u3 = c4.exec(s5), null !== u3); ) f3 = c4.lastIndex, c4 === v ? "!--" === u3[1] ? c4 = _ : void 0 !== u3[1] ? c4 = m : void 0 !== u3[2] ? (y2.test(u3[2]) && (n4 = RegExp("</" + u3[2], "g")), c4 = p2) : void 0 !== u3[3] && (c4 = p2) : c4 === p2 ? ">" === u3[0] ? (c4 = n4 ?? v, d4 = -1) : void 0 === u3[1] ? d4 = -2 : (d4 = c4.lastIndex - u3[2].length, a3 = u3[1], c4 = void 0 === u3[3] ? p2 : '"' === u3[3] ? $ : g) : c4 === $ || c4 === g ? c4 = p2 : c4 === _ || c4 === m ? c4 = v : (c4 = p2, n4 = void 0);
     const x2 = c4 === p2 && t3[i6 + 1].startsWith("/>") ? " " : "";
-    l3 += c4 === v ? s5 + r3 : d3 >= 0 ? (e4.push(a3), s5.slice(0, d3) + h2 + s5.slice(d3) + o3 + x2) : s5 + o3 + (-2 === d3 ? i6 : x2);
+    l3 += c4 === v ? s5 + r3 : d4 >= 0 ? (e4.push(a3), s5.slice(0, d4) + h2 + s5.slice(d4) + o3 + x2) : s5 + o3 + (-2 === d4 ? i6 : x2);
   }
   return [V(t3, l3 + (t3[s4] || "<?>") + (2 === i5 ? "</svg>" : 3 === i5 ? "</math>" : "")), e4];
 };
@@ -317,29 +317,29 @@ var S2 = class _S {
     let r4;
     this.parts = [];
     let l3 = 0, a3 = 0;
-    const u3 = t3.length - 1, d3 = this.parts, [f3, v2] = N(t3, i5);
+    const u3 = t3.length - 1, d4 = this.parts, [f3, v2] = N(t3, i5);
     if (this.el = _S.createElement(f3, e4), P.currentNode = this.el.content, 2 === i5 || 3 === i5) {
       const t4 = this.el.content.firstChild;
       t4.replaceWith(...t4.childNodes);
     }
-    for (; null !== (r4 = P.nextNode()) && d3.length < u3; ) {
+    for (; null !== (r4 = P.nextNode()) && d4.length < u3; ) {
       if (1 === r4.nodeType) {
         if (r4.hasAttributes()) for (const t4 of r4.getAttributeNames()) if (t4.endsWith(h2)) {
           const i6 = v2[a3++], s4 = r4.getAttribute(t4).split(o3), e5 = /([.?@])?(.*)/.exec(i6);
-          d3.push({ type: 1, index: l3, name: e5[2], strings: s4, ctor: "." === e5[1] ? I : "?" === e5[1] ? L : "@" === e5[1] ? z : H }), r4.removeAttribute(t4);
-        } else t4.startsWith(o3) && (d3.push({ type: 6, index: l3 }), r4.removeAttribute(t4));
+          d4.push({ type: 1, index: l3, name: e5[2], strings: s4, ctor: "." === e5[1] ? I : "?" === e5[1] ? L : "@" === e5[1] ? z : H }), r4.removeAttribute(t4);
+        } else t4.startsWith(o3) && (d4.push({ type: 6, index: l3 }), r4.removeAttribute(t4));
         if (y2.test(r4.tagName)) {
           const t4 = r4.textContent.split(o3), i6 = t4.length - 1;
           if (i6 > 0) {
             r4.textContent = s2 ? s2.emptyScript : "";
-            for (let s4 = 0; s4 < i6; s4++) r4.append(t4[s4], c3()), P.nextNode(), d3.push({ type: 2, index: ++l3 });
+            for (let s4 = 0; s4 < i6; s4++) r4.append(t4[s4], c3()), P.nextNode(), d4.push({ type: 2, index: ++l3 });
             r4.append(t4[i6], c3());
           }
         }
-      } else if (8 === r4.nodeType) if (r4.data === n3) d3.push({ type: 2, index: l3 });
+      } else if (8 === r4.nodeType) if (r4.data === n3) d4.push({ type: 2, index: l3 });
       else {
         let t4 = -1;
-        for (; -1 !== (t4 = r4.data.indexOf(o3, t4 + 1)); ) d3.push({ type: 7, index: l3 }), t4 += o3.length - 1;
+        for (; -1 !== (t4 = r4.data.indexOf(o3, t4 + 1)); ) d4.push({ type: 7, index: l3 }), t4 += o3.length - 1;
       }
       l3++;
     }
@@ -592,6 +592,11 @@ var cardStyles = i`
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   }
   .embedded { container-type: inline-size; }
+  /* One machine in full: side by side when there's room (readings | services), stacked when not. */
+  .mcard { display: grid; grid-template-columns: 1fr; gap: 18px; }
+  .mright:empty { display: none; }
+  .kvrow { font-size: 0.9em; padding: 3px 0; max-width: 420px; }
+  @container (min-width: 760px) { .mcard { grid-template-columns: minmax(300px, 420px) 1fr; gap: 28px; } }
   @container (max-width: 400px) { ul.list .row.spread { flex-wrap: wrap; } }
   .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; min-height: 28px; }
   .title { font-size: 0.8em; font-weight: 600; color: var(--hisho-brown-text); letter-spacing: 0.12em; text-transform: uppercase; }
@@ -727,6 +732,37 @@ var cardStyles = i`
   .detail { color: var(--hisho-text-2); font-size: 0.86em; white-space: pre-wrap; line-height: 1.45; }
   .empty { color: var(--hisho-text-2); padding: 10px 2px; font-size: 0.92em; display: flex; align-items: center; gap: 8px; }
   .empty svg { width: 18px; height: 18px; fill: var(--hisho-ok); }
+  /* Your day: to-dos with a round tick, and dates coming due. */
+  ul.todos, ul.dues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  ul.todos li { display: flex; align-items: flex-start; gap: 11px; padding: 9px 2px; border-top: 1px solid var(--hisho-line); line-height: 1.4; }
+  ul.todos li:first-child { border-top: none; }
+  button.tick { flex: none; width: 20px; height: 20px; margin-top: 1px; border-radius: 50%; cursor: pointer; padding: 0;
+    border: 1.5px solid var(--hisho-accent-text); background: transparent; transition: background 0.15s; }
+  button.tick:hover { background: color-mix(in srgb, var(--hisho-accent) 45%, transparent); }
+  ul.dues li { display: flex; align-items: center; gap: 10px; padding: 6px 0; min-width: 0; }
+  ul.dues .when { font-size: 0.8em; color: var(--hisho-brown-text); white-space: nowrap; font-weight: 500; }
+  form.addrow { display: flex; gap: 8px; margin-bottom: 10px; }
+  form.addrow input, form.ask input {
+    flex: 1; min-width: 0; font: inherit; color: var(--hisho-text); background: var(--hisho-inset); border: 1px solid var(--hisho-edge);
+    border-radius: 999px; padding: 8px 14px; outline: none;
+  }
+  form.addrow input:focus, form.ask input:focus { border-color: color-mix(in srgb, var(--hisho-accent-text) 60%, transparent); }
+  /* Ask Hisho: one line to type in, the answer under it. */
+  form.ask { display: flex; align-items: center; gap: 10px; }
+  form.ask input { padding: 11px 16px; font-size: 1em; background: rgba(0, 0, 0, 0.25); }
+  form.ask input::placeholder, form.addrow input::placeholder { color: var(--hisho-text-2); }
+  button.send { flex: none; width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; color: #fff;
+    background: var(--hisho-accent); display: inline-flex; align-items: center; justify-content: center; }
+  button.send svg { width: 20px; height: 20px; fill: currentColor; }
+  button.send[disabled] { opacity: 0.5; }
+  .answer { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .answer .q { align-self: flex-end; background: color-mix(in srgb, var(--hisho-accent) 35%, transparent); padding: 6px 12px;
+    border-radius: 14px 14px 4px 14px; font-size: 0.9em; max-width: 85%; }
+  .answer .a { background: var(--hisho-inset); padding: 9px 13px; border-radius: 14px 14px 14px 4px; font-size: 0.92em;
+    line-height: 1.45; white-space: pre-wrap; max-width: 92%; }
+  .thinking { display: inline-flex; align-items: center; gap: 6px; color: var(--hisho-text-2); }
+  .thinking svg { width: 16px; height: 16px; fill: currentColor; animation: hisho-spin 1.4s linear infinite; }
+  @keyframes hisho-spin { to { transform: rotate(360deg); } }
   .switch { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.86em; }
   .switch input { accent-color: var(--hisho-accent); width: 15px; height: 15px; }
   .kv { display: grid; grid-template-columns: auto 1fr; gap: 3px 12px; font-size: 0.84em; }
@@ -788,7 +824,7 @@ function hishoDevices(hass2) {
   return list;
 }
 function hishoEntityIds(hass2) {
-  return hishoDevices(hass2).flatMap((d3) => Object.values(d3.entities).flat());
+  return hishoDevices(hass2).flatMap((d4) => Object.values(d4.entities).flat());
 }
 function indexDevices(hass2) {
   const byDevice = /* @__PURE__ */ new Map();
@@ -814,7 +850,7 @@ function indexDevices(hass2) {
   return out.sort((a3, b3) => a3.name.localeCompare(b3.name));
 }
 function byKind(hass2, kind) {
-  return hishoDevices(hass2).filter((d3) => d3.kind === kind);
+  return hishoDevices(hass2).filter((d4) => d4.kind === kind);
 }
 function hub(hass2) {
   return byKind(hass2, "hub")[0];
@@ -823,7 +859,7 @@ function findDevice(hass2, ref, kind) {
   if (!ref) return void 0;
   const wanted = ref.toLowerCase();
   return hishoDevices(hass2).find(
-    (d3) => (!kind || d3.kind === kind) && (d3.id === ref || d3.name.toLowerCase() === wanted)
+    (d4) => (!kind || d4.kind === kind) && (d4.id === ref || d4.name.toLowerCase() === wanted)
   );
 }
 function entityId(dev, key) {
@@ -1105,33 +1141,37 @@ var HishoSpark = class extends i4 {
 if (!customElements.get("hisho-spark")) customElements.define("hisho-spark", HishoSpark);
 
 // node_modules/@mdi/js/mdi.js
-var mdiAccountClockOutline = "M16,14H17.5V16.82L19.94,18.23L19.19,19.53L16,17.69V14M17,12A5,5 0 0,0 12,17A5,5 0 0,0 17,22A5,5 0 0,0 22,17A5,5 0 0,0 17,12M17,10A7,7 0 0,1 24,17A7,7 0 0,1 17,24C14.21,24 11.8,22.36 10.67,20H1V17C1,14.34 6.33,13 9,13C9.6,13 10.34,13.07 11.12,13.2C12.36,11.28 14.53,10 17,10M10,17C10,16.3 10.1,15.62 10.29,15C9.87,14.93 9.43,14.9 9,14.9C6.03,14.9 2.9,16.36 2.9,17V18.1H10.09C10.03,17.74 10,17.37 10,17M9,4A4,4 0 0,1 13,8A4,4 0 0,1 9,12A4,4 0 0,1 5,8A4,4 0 0,1 9,4M9,5.9A2.1,2.1 0 0,0 6.9,8A2.1,2.1 0 0,0 9,10.1A2.1,2.1 0 0,0 11.1,8A2.1,2.1 0 0,0 9,5.9Z";
 var mdiAlarmSnooze = "M7.88,3.39L6.6,1.86L2,5.71L3.29,7.24L7.88,3.39M22,5.72L17.4,1.86L16.11,3.39L20.71,7.25L22,5.72M12,4A9,9 0 0,0 3,13A9,9 0 0,0 12,22A9,9 0 0,0 21,13A9,9 0 0,0 12,4M12,20A7,7 0 0,1 5,13A7,7 0 0,1 12,6A7,7 0 0,1 19,13A7,7 0 0,1 12,20M9,11H12.63L9,15.2V17H15V15H11.37L15,10.8V9H9V11Z";
 var mdiAlertCircleOutline = "M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.5 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20Z";
 var mdiAlertOctagonOutline = "M8.27,3L3,8.27V15.73L8.27,21H15.73C17.5,19.24 21,15.73 21,15.73V8.27L15.73,3M9.1,5H14.9L19,9.1V14.9L14.9,19H9.1L5,14.9V9.1M11,15H13V17H11V15M11,7H13V13H11V7";
 var mdiArrowRight = "M4,11V13H16L10.5,18.5L11.92,19.92L19.84,12L11.92,4.08L10.5,5.5L16,11H4Z";
+var mdiArrowUp = "M13,20H11V8L5.5,13.5L4.08,12.08L12,4.16L19.92,12.08L18.5,13.5L13,8V20Z";
 var mdiBellRingOutline = "M10,21H14A2,2 0 0,1 12,23A2,2 0 0,1 10,21M21,19V20H3V19L5,17V11C5,7.9 7.03,5.17 10,4.29C10,4.19 10,4.1 10,4A2,2 0 0,1 12,2A2,2 0 0,1 14,4C14,4.1 14,4.19 14,4.29C16.97,5.17 19,7.9 19,11V17L21,19M17,11A5,5 0 0,0 12,6A5,5 0 0,0 7,11V18H17V11M19.75,3.19L18.33,4.61C20.04,6.3 21,8.6 21,11H23C23,8.07 21.84,5.25 19.75,3.19M1,11H3C3,8.6 3.96,6.3 5.67,4.61L4.25,3.19C2.16,5.25 1,8.07 1,11Z";
+var mdiCalendarClock = "M15,13H16.5V15.82L18.94,17.23L18.19,18.53L15,16.69V13M19,8H5V19H9.67C9.24,18.09 9,17.07 9,16A7,7 0 0,1 16,9C17.07,9 18.09,9.24 19,9.67V8M5,21C3.89,21 3,20.1 3,19V5C3,3.89 3.89,3 5,3H6V1H8V3H16V1H18V3H19A2,2 0 0,1 21,5V11.1C22.24,12.36 23,14.09 23,16A7,7 0 0,1 16,23C14.09,23 12.36,22.24 11.1,21H5M16,11.15A4.85,4.85 0 0,0 11.15,16C11.15,18.68 13.32,20.85 16,20.85A4.85,4.85 0 0,0 20.85,16C20.85,13.32 18.68,11.15 16,11.15Z";
 var mdiCellphoneMessage = "M11,17V7H4V17H11M11,3A2,2 0 0,1 13,5V19A2,2 0 0,1 11,21H4C2.89,21 2,20.1 2,19V5A2,2 0 0,1 4,3H11M16.5,3H21.5A1.5,1.5 0 0,1 23,4.5V7.5A1.5,1.5 0 0,1 21.5,9H18L15,12V9L15,4.5A1.5,1.5 0 0,1 16.5,3Z";
 var mdiCheck = "M21,7L9,19L3.5,13.5L4.91,12.09L9,16.17L19.59,5.59L21,7Z";
 var mdiCheckCircleOutline = "M12 2C6.5 2 2 6.5 2 12S6.5 22 12 22 22 17.5 22 12 17.5 2 12 2M12 20C7.59 20 4 16.41 4 12S7.59 4 12 4 20 7.59 20 12 16.41 20 12 20M16.59 7.58L10 14.17L7.41 11.59L6 13L10 17L18 9L16.59 7.58Z";
 var mdiCheckDecagramOutline = "M23 12L20.6 9.2L20.9 5.5L17.3 4.7L15.4 1.5L12 3L8.6 1.5L6.7 4.7L3.1 5.5L3.4 9.2L1 12L3.4 14.8L3.1 18.5L6.7 19.3L8.6 22.5L12 21L15.4 22.5L17.3 19.3L20.9 18.5L20.6 14.8L23 12M18.7 16.9L16 17.5L14.6 19.9L12 18.8L9.4 19.9L8 17.5L5.3 16.9L5.5 14.1L3.7 12L5.5 9.9L5.3 7.1L8 6.5L9.4 4.1L12 5.2L14.6 4.1L16 6.5L18.7 7.1L18.5 9.9L20.3 12L18.5 14.1L18.7 16.9M16.6 7.6L18 9L10 17L6 13L7.4 11.6L10 14.2L16.6 7.6Z";
 var mdiChevronRight = "M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z";
-var mdiCloudCheckOutline = "M13 19C13 19.34 13.04 19.67 13.09 20H6.5C5 20 3.69 19.5 2.61 18.43C1.54 17.38 1 16.09 1 14.58C1 13.28 1.39 12.12 2.17 11.1S4 9.43 5.25 9.15C5.67 7.62 6.5 6.38 7.75 5.43S10.42 4 12 4C13.95 4 15.6 4.68 16.96 6.04C18.32 7.4 19 9.05 19 11C20.15 11.13 21.1 11.63 21.86 12.5C22.37 13.07 22.7 13.71 22.86 14.42C21.82 13.54 20.5 13 19 13C18.89 13 18.79 13 18.68 13C18.62 13 18.56 13 18.5 13H17V11C17 9.62 16.5 8.44 15.54 7.46C14.56 6.5 13.38 6 12 6S9.44 6.5 8.46 7.46C7.5 8.44 7 9.62 7 11H6.5C5.53 11 4.71 11.34 4.03 12.03C3.34 12.71 3 13.53 3 14.5S3.34 16.29 4.03 17C4.71 17.66 5.53 18 6.5 18H13.09C13.04 18.33 13 18.66 13 19M17.75 19.43L16.16 17.84L15 19L17.75 22L22.5 17.25L21.34 15.84L17.75 19.43Z";
-var mdiCloudOffOutline = "M19.8 22.6L17.15 20H6.5Q4.2 20 2.6 18.4T1 14.5Q1 12.58 2.19 11.08 3.38 9.57 5.25 9.15 5.33 8.95 5.4 8.76 5.5 8.57 5.55 8.35L1.4 4.2L2.8 2.8L21.2 21.2M6.5 18H15.15L7.1 9.95Q7.05 10.23 7.03 10.5 7 10.73 7 11H6.5Q5.05 11 4.03 12.03 3 13.05 3 14.5 3 15.95 4.03 17 5.05 18 6.5 18M11.13 14M21.6 18.75L20.15 17.35Q20.58 17 20.79 16.54 21 16.08 21 15.5 21 14.45 20.27 13.73 19.55 13 18.5 13H17V11Q17 8.93 15.54 7.46 14.08 6 12 6 11.33 6 10.7 6.16 10.07 6.33 9.5 6.68L8.05 5.23Q8.93 4.63 9.91 4.31 10.9 4 12 4 14.93 4 16.96 6.04 19 8.07 19 11 20.73 11.2 21.86 12.5 23 13.78 23 15.5 23 16.5 22.63 17.31 22.25 18.15 21.6 18.75M14.83 12.03Z";
+var mdiClose = "M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z";
+var mdiCoffeeOutline = "M2,21V19H20V21H2M20,8V5H18V8H20M20,3A2,2 0 0,1 22,5V8A2,2 0 0,1 20,10H18V13A4,4 0 0,1 14,17H8A4,4 0 0,1 4,13V3H20M16,5H6V13A2,2 0 0,0 8,15H14A2,2 0 0,0 16,13V5Z";
 var mdiCogOutline = "M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10M10,22C9.75,22 9.54,21.82 9.5,21.58L9.13,18.93C8.5,18.68 7.96,18.34 7.44,17.94L4.95,18.95C4.73,19.03 4.46,18.95 4.34,18.73L2.34,15.27C2.21,15.05 2.27,14.78 2.46,14.63L4.57,12.97L4.5,12L4.57,11L2.46,9.37C2.27,9.22 2.21,8.95 2.34,8.73L4.34,5.27C4.46,5.05 4.73,4.96 4.95,5.05L7.44,6.05C7.96,5.66 8.5,5.32 9.13,5.07L9.5,2.42C9.54,2.18 9.75,2 10,2H14C14.25,2 14.46,2.18 14.5,2.42L14.87,5.07C15.5,5.32 16.04,5.66 16.56,6.05L19.05,5.05C19.27,4.96 19.54,5.05 19.66,5.27L21.66,8.73C21.79,8.95 21.73,9.22 21.54,9.37L19.43,11L19.5,12L19.43,13L21.54,14.63C21.73,14.78 21.79,15.05 21.66,15.27L19.66,18.73C19.54,18.95 19.27,19.04 19.05,18.95L16.56,17.95C16.04,18.34 15.5,18.68 14.87,18.93L14.5,21.58C14.46,21.82 14.25,22 14,22H10M11.25,4L10.88,6.61C9.68,6.86 8.62,7.5 7.85,8.39L5.44,7.35L4.69,8.65L6.8,10.2C6.4,11.37 6.4,12.64 6.8,13.8L4.68,15.36L5.43,16.66L7.86,15.62C8.63,16.5 9.68,17.14 10.87,17.38L11.24,20H12.76L13.13,17.39C14.32,17.14 15.37,16.5 16.14,15.62L18.57,16.66L19.32,15.36L17.2,13.81C17.6,12.64 17.6,11.37 17.2,10.2L19.31,8.65L18.56,7.35L16.15,8.39C15.38,7.5 14.32,6.86 13.12,6.62L12.75,4H11.25Z";
 var mdiCogSyncOutline = "M11.7 20H11.3L10.9 17.4C9.7 17.2 8.7 16.5 7.9 15.6L5.5 16.6L4.7 15.3L6.8 13.7C6.4 12.5 6.4 11.3 6.8 10.1L4.7 8.7L5.5 7.4L7.9 8.4C8.7 7.5 9.7 6.9 10.9 6.6L11.2 4H12.7L13.1 6.6C14.3 6.8 15.4 7.5 16.1 8.4L18.5 7.4L19.3 8.7L17.2 10.2C17.4 10.8 17.5 11.4 17.5 12H18C18.5 12 19 12.1 19.5 12.2V12L19.4 11L21.5 9.4C21.7 9.2 21.7 9 21.6 8.8L19.6 5.3C19.5 5 19.3 5 19 5L16.5 6C16 5.6 15.4 5.3 14.8 5L14.4 2.3C14.5 2.2 14.2 2 14 2H10C9.8 2 9.5 2.2 9.5 2.4L9.1 5.1C8.5 5.3 8 5.7 7.4 6L5 5C4.7 5 4.5 5 4.3 5.3L2.3 8.8C2.2 9 2.3 9.2 2.5 9.4L4.6 11L4.5 12L4.6 13L2.5 14.7C2.3 14.9 2.3 15.1 2.4 15.3L4.4 18.8C4.5 19 4.7 19 5 19L7.5 18C8 18.4 8.6 18.7 9.2 19L9.6 21.7C9.6 21.9 9.8 22.1 10.1 22.1H12.6C12.1 21.4 11.9 20.7 11.7 20M16 12.3V12C16 9.8 14.2 8 12 8S8 9.8 8 12C8 14.2 9.8 16 12 16C12.7 14.3 14.2 12.9 16 12.3M10 12C10 10.9 10.9 10 12 10S14 10.9 14 12 13.1 14 12 14 10 13.1 10 12M18 14.5V13L15.8 15.2L18 17.4V16C19.4 16 20.5 17.1 20.5 18.5C20.5 18.9 20.4 19.3 20.2 19.6L21.3 20.7C22.5 18.9 22 16.4 20.2 15.2C19.6 14.7 18.8 14.5 18 14.5M18 21C16.6 21 15.5 19.9 15.5 18.5C15.5 18.1 15.6 17.7 15.8 17.4L14.7 16.3C13.5 18.1 14 20.6 15.8 21.8C16.5 22.2 17.2 22.5 18 22.5V24L20.2 21.8L18 19.5V21Z";
 var mdiDesktopTowerMonitor = "M22,18H17A1,1 0 0,1 16,17V7A1,1 0 0,1 17,6H22A1,1 0 0,1 23,7V17A1,1 0 0,1 22,18M22,8H17V9H22V8M22,10H17V11H22V10M9,15V17H10V18H5V17H6V15H2A1,1 0 0,1 1,14V7A1,1 0 0,1 2,6H13A1,1 0 0,1 14,7V14A1,1 0 0,1 13,15H9M12,8H3V13H12V8Z";
 var mdiExpansionCardVariant = "M2 7H4.5V17H3V8.5H2M22 7V16H14V17H7V16H6V7M10 9H8V12H10M13 9H11V12H13M20 9H15V14H20V9Z";
 var mdiFileAlertOutline = "M20 17H22V15H20V17M20 7V13H22V7M4 2C2.89 2 2 2.89 2 4V20C2 21.11 2.89 22 4 22H16C17.11 22 18 21.11 18 20V8L12 2M4 4H11V9H16V20H4Z";
+var mdiFolderAccountOutline = "M15 14C16.33 14 19 14.67 19 16V17H11V16C11 14.67 13.67 14 15 14M15 13C16.11 13 17 12.11 17 11S16.11 9 15 9C13.9 9 13 9.89 13 11C13 12.11 13.9 13 15 13M22 8V18C22 19.11 21.11 20 20 20H4C2.9 20 2 19.11 2 18V6C2 4.89 2.9 4 4 4H10L12 6H20C21.11 6 22 6.9 22 8M20 8H4V18H20V8Z";
 var mdiHelpCircleOutline = "M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z";
 var mdiInformationOutline = "M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z";
 var mdiMagnify = "M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z";
+var mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
 var mdiPower = "M16.56,5.44L15.11,6.89C16.84,7.94 18,9.83 18,12A6,6 0 0,1 12,18A6,6 0 0,1 6,12C6,9.83 7.16,7.94 8.88,6.88L7.44,5.44C5.36,6.88 4,9.28 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12C20,9.28 18.64,6.88 16.56,5.44M13,3H11V13H13";
 var mdiPowerSleep = "M18.73,18C15.4,21.69 9.71,22 6,18.64C2.33,15.31 2.04,9.62 5.37,5.93C6.9,4.25 9,3.2 11.27,3C7.96,6.7 8.27,12.39 12,15.71C13.63,17.19 15.78,18 18,18C18.25,18 18.5,18 18.73,18Z";
+var mdiProgressClock = "M13,2.03V2.05L13,4.05C17.39,4.59 20.5,8.58 19.96,12.97C19.5,16.61 16.64,19.5 13,19.93V21.93C18.5,21.38 22.5,16.5 21.95,11C21.5,6.25 17.73,2.5 13,2.03M11,2.06C9.05,2.25 7.19,3 5.67,4.26L7.1,5.74C8.22,4.84 9.57,4.26 11,4.06V2.06M4.26,5.67C3,7.19 2.25,9.04 2.05,11H4.05C4.24,9.58 4.8,8.23 5.69,7.1L4.26,5.67M2.06,13C2.26,14.96 3.03,16.81 4.27,18.33L5.69,16.9C4.81,15.77 4.24,14.42 4.06,13H2.06M7.1,18.37L5.67,19.74C7.18,21 9.04,21.79 11,22V20C9.58,19.82 8.23,19.25 7.1,18.37M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z";
 var mdiServer = "M4,1H20A1,1 0 0,1 21,2V6A1,1 0 0,1 20,7H4A1,1 0 0,1 3,6V2A1,1 0 0,1 4,1M4,9H20A1,1 0 0,1 21,10V14A1,1 0 0,1 20,15H4A1,1 0 0,1 3,14V10A1,1 0 0,1 4,9M4,17H20A1,1 0 0,1 21,18V22A1,1 0 0,1 20,23H4A1,1 0 0,1 3,22V18A1,1 0 0,1 4,17M9,5H10V3H9V5M9,13H10V11H9V13M9,21H10V19H9V21M5,3V5H7V3H5M5,11V13H7V11H5M5,19V21H7V19H5Z";
 var mdiServerNetwork = "M13,19H14A1,1 0 0,1 15,20H22V22H15A1,1 0 0,1 14,23H10A1,1 0 0,1 9,22H2V20H9A1,1 0 0,1 10,19H11V17H4A1,1 0 0,1 3,16V12A1,1 0 0,1 4,11H20A1,1 0 0,1 21,12V16A1,1 0 0,1 20,17H13V19M4,3H20A1,1 0 0,1 21,4V8A1,1 0 0,1 20,9H4A1,1 0 0,1 3,8V4A1,1 0 0,1 4,3M9,7H10V5H9V7M9,15H10V13H9V15M5,5V7H7V5H5M5,13V15H7V13H5Z";
-var mdiSync = "M12,18A6,6 0 0,1 6,12C6,11 6.25,10.03 6.7,9.2L5.24,7.74C4.46,8.97 4,10.43 4,12A8,8 0 0,0 12,20V23L16,19L12,15M12,4V1L8,5L12,9V6A6,6 0 0,1 18,12C18,13 17.75,13.97 17.3,14.8L18.76,16.26C19.54,15.03 20,13.57 20,12A8,8 0 0,0 12,4Z";
-var mdiSyncAlert = "M11,13H13V7H11M21,4H15V10L17.24,7.76C18.32,8.85 19,10.34 19,12C19,14.61 17.33,16.83 15,17.65V19.74C18.45,18.85 21,15.73 21,12C21,9.79 20.09,7.8 18.64,6.36M11,17H13V15H11M3,12C3,14.21 3.91,16.2 5.36,17.64L3,20H9V14L6.76,16.24C5.68,15.15 5,13.66 5,12C5,9.39 6.67,7.17 9,6.35V4.26C5.55,5.15 3,8.27 3,12Z";
+var mdiShieldAlertOutline = "M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21M11,7H13V13H11V7M11,15H13V17H11V15Z";
+var mdiShieldCheckOutline = "M21,11C21,16.55 17.16,21.74 12,23C6.84,21.74 3,16.55 3,11V5L12,1L21,5V11M12,21C15.75,20 19,15.54 19,11.22V6.3L12,3.18L5,6.3V11.22C5,15.54 8.25,20 12,21M10,17L6,13L7.41,11.59L10,14.17L16.59,7.58L18,9";
 var mdiTimerSandEmpty = "M6,2V8H6V8L10,12L6,16V16H6V22H18V16H18V16L14,12L18,8V8H18V2H6M16,16.5V20H8V16.5L12,12.5L16,16.5M12,11.5L8,7.5V4H16V7.5L12,11.5Z";
 var mdiWrenchOutline = "M22.61,19L13.53,9.91C14.46,7.57 14,4.81 12.09,2.91C9.79,0.61 6.21,0.4 3.66,2.26L7.5,6.11L6.08,7.5L2.25,3.69C0.39,6.23 0.6,9.82 2.9,12.11C4.76,13.97 7.47,14.46 9.79,13.59L18.9,22.7C19.29,23.09 19.92,23.09 20.31,22.7L22.61,20.4C23,20 23,19.39 22.61,19M19.61,20.59L10.15,11.13C9.54,11.58 8.86,11.85 8.15,11.95C6.79,12.15 5.36,11.74 4.32,10.7C3.37,9.76 2.93,8.5 3,7.26L6.09,10.35L10.33,6.11L7.24,3C8.5,2.95 9.73,3.39 10.68,4.33C11.76,5.41 12.17,6.9 11.92,8.29C11.8,9 11.5,9.66 11.04,10.25L20.5,19.7L19.61,20.59Z";
 
@@ -1283,10 +1323,204 @@ function registerIcons(w3 = window) {
   }
 }
 
+// src/cards/assistant.ts
+var VERB = {
+  transcribe: "Transcribing",
+  install: "Installing",
+  build: "Building",
+  deploy: "Deploying",
+  investigate: "Looking into",
+  backup: "Backing up",
+  sync: "Syncing",
+  test: "Testing",
+  update: "Updating",
+  upgrade: "Upgrading"
+};
+var DONE = {
+  transcribe: "Transcribed",
+  install: "Installed",
+  build: "Built",
+  deploy: "Deployed",
+  investigate: "Looked into",
+  backup: "Backed up",
+  sync: "Synced",
+  test: "Tested",
+  update: "Updated",
+  upgrade: "Upgraded"
+};
+function workerName(hass2, worker) {
+  const m2 = hass2 ? byKind(hass2, "machine").find((d4) => entity(hass2, d4, "machine_state")?.attributes.machine === worker || d4.name.toLowerCase() === worker.toLowerCase()) : void 0;
+  return m2?.name ?? worker.replace(/(^|-)(\w)/g, (_2, dash, c4) => (dash ? " " : "") + c4.toUpperCase());
+}
+function jobWords(j, done = false, hass2) {
+  const kind = String(j.kind ?? "job");
+  const verb = (done ? DONE[kind] ?? `Finished ${kind}` : VERB[kind]) ?? kind.replace(/^\w/, (c4) => c4.toUpperCase());
+  return j.worker ? `${verb} on ${workerName(hass2, String(j.worker))}` : verb;
+}
+function ago(iso2, now = Date.now()) {
+  const t3 = iso2 ? Date.parse(iso2) : NaN;
+  if (!Number.isFinite(t3)) return "";
+  const min = Math.round((now - t3) / 6e4);
+  if (min < 2) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const h3 = Math.round(min / 60);
+  return h3 < 24 ? `${h3} h ago` : `${Math.round(h3 / 24)} d ago`;
+}
+function dueWords(day2, now = /* @__PURE__ */ new Date()) {
+  const [y3, m2, d4] = day2.slice(0, 10).split("-").map(Number);
+  const due = new Date(y3, m2 - 1, d4);
+  const today2 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = Math.round((due.getTime() - today2.getTime()) / 864e5);
+  if (days < 0) return days === -1 ? "Yesterday" : `${-days} days late`;
+  if (days === 0) return "Today";
+  if (days === 1) return "Tomorrow";
+  return due.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+function workingOn(hass2) {
+  const h3 = hub(hass2);
+  const jobs = entity(hass2, h3, "jobs_active")?.attributes.jobs ?? [];
+  const projects = entity(hass2, h3, "projects_active")?.attributes.projects ?? [];
+  const live = jobs.filter((j) => ["queued", "routed", "running"].includes(j.status)).map((j) => ({
+    what: jobWords(j, false, hass2),
+    sub: j.status === "running" ? `started ${ago(j.updated_at)}`.trim() : "waiting its turn",
+    path: j.status === "running" ? mdiCogSyncOutline : mdiTimerSandEmpty,
+    tone: j.status === "running" ? "accent" : "off"
+  }));
+  const mine = projects.filter((p3) => p3.status === "active" && ["claude", "hisho"].includes(String(p3.waiting_on ?? "").toLowerCase())).map((p3) => ({ what: p3.title, sub: p3.next ? `Next: ${p3.next}` : "In progress", path: mdiFolderAccountOutline, tone: "brown" }));
+  return [...live, ...mine];
+}
+function doneForYou(hass2, now = Date.now()) {
+  const feed = entity(hass2, hub(hass2), "done_for_you");
+  if (feed && Array.isArray(feed.attributes.items)) {
+    return feed.attributes.items.map((i5) => ({ what: String(i5.text), when: ago(i5.at, now) }));
+  }
+  const jobs = entity(hass2, hub(hass2), "jobs_active")?.attributes.jobs ?? [];
+  return jobs.filter((j) => j.status === "done" && now - Date.parse(j.updated_at ?? "") < 864e5).sort((a3, b3) => Date.parse(b3.updated_at) - Date.parse(a3.updated_at)).map((j) => ({ what: jobWords(j, true, hass2), when: ago(j.updated_at, now) }));
+}
+function waitingOnYou(hass2) {
+  const projects = entity(hass2, hub(hass2), "projects_active")?.attributes.projects ?? [];
+  return projects.filter((p3) => p3.status === "active" && (p3.asks?.length || !["", "claude", "hisho"].includes(String(p3.waiting_on ?? "").toLowerCase())));
+}
+var HishoDay = class extends i4 {
+  static {
+    this.properties = { hass: { attribute: false }, items: { state: true }, due: { state: true }, adding: { state: true } };
+  }
+  static {
+    this.styles = cardStyles;
+  }
+  constructor() {
+    super();
+    this.items = [];
+    this.due = [];
+    this.adding = false;
+  }
+  ids() {
+    const h3 = hub(this.hass);
+    return { todo: entityId(h3, "today"), cal: entityId(h3, "due_dates") };
+  }
+  updated(changed) {
+    if (!changed.has("hass") || !this.hass) return;
+    const { todo: todo2, cal } = this.ids();
+    const stamp = [todo2, cal].map((id) => id ? `${this.hass.states[id]?.last_changed}|${this.hass.states[id]?.state}` : "").join(";");
+    if (stamp === this.seen) return;
+    this.seen = stamp;
+    if (todo2) {
+      this.hass.callWS({ type: "todo/item/list", entity_id: todo2 }).then((r4) => this.items = r4.items ?? []).catch(() => this.items = []);
+    }
+    if (cal && this.hass.callApi) {
+      const start = /* @__PURE__ */ new Date(), end = new Date(Date.now() + 14 * 864e5);
+      this.hass.callApi("GET", `calendars/${cal}?start=${start.toISOString()}&end=${end.toISOString()}`).then((r4) => this.due = r4 ?? []).catch(() => this.due = []);
+    }
+  }
+  tick(item) {
+    const { todo: todo2 } = this.ids();
+    if (todo2) void this.hass.callService("todo", "update_item", { item: item.uid, status: "completed" }, { entity_id: todo2 });
+  }
+  add(e4) {
+    e4.preventDefault();
+    const input = e4.target.querySelector("input");
+    const { todo: todo2 } = this.ids();
+    if (todo2 && input.value.trim()) void this.hass.callService("todo", "add_item", { item: input.value.trim() }, { entity_id: todo2 });
+    input.value = "";
+    this.adding = false;
+  }
+  render() {
+    const open = this.items.filter((i5) => i5.status === "needs_action");
+    const { todo: todo2 } = this.ids();
+    return b2`
+      <div class="head"><span class="title">Your day</span>
+        ${todo2 ? b2`<button class="more" @click=${() => this.adding = !this.adding}>${icon(mdiPlus, "")}Add</button>` : ""}</div>
+      ${this.adding ? b2`<form class="addrow" @submit=${this.add}><input placeholder="A new to-do for Today" autofocus />
+        <button class="act primary" type="submit">Add</button></form>` : ""}
+      ${open.length ? b2`<ul class="todos">${open.map((i5) => b2`<li>
+          <button class="tick" title="Done" @click=${() => this.tick(i5)}></button><span>${i5.summary}</span></li>`)}</ul>` : b2`<div class="empty">${icon(mdiCheckCircleOutline, "")}Nothing left on today's list.</div>`}
+      ${this.due.length ? b2`<div class="eyebrow" style="margin-top:16px">Coming due</div>
+        <ul class="dues">${this.due.slice(0, 4).map((d4) => {
+      const when = dueWords(d4.start.date ?? d4.start.dateTime ?? "");
+      return b2`<li><span class="bubble sm ${/late|Today/.test(when) ? "warn" : "brown"}">${icon(mdiCalendarClock, "")}</span>
+            <span class="grow ellipsis">${d4.summary}</span><span class="when">${when}</span></li>`;
+    })}</ul>` : ""}`;
+  }
+};
+var HishoAsk = class extends i4 {
+  static {
+    this.properties = { hass: { attribute: false }, asked: { state: true }, answer: { state: true }, busy: { state: true } };
+  }
+  static {
+    this.styles = cardStyles;
+  }
+  constructor() {
+    super();
+    this.asked = "";
+    this.answer = "";
+    this.busy = false;
+  }
+  async ask(e4) {
+    e4.preventDefault();
+    const input = e4.target.querySelector("input");
+    const text = input.value.trim();
+    const agent = entityId(hub(this.hass), "assistant");
+    if (!text || !agent || this.busy) return;
+    input.value = "";
+    this.asked = text;
+    this.answer = "";
+    this.busy = true;
+    try {
+      const r4 = await this.hass.callWS({
+        type: "conversation/process",
+        text,
+        agent_id: agent,
+        conversation_id: this.conversation,
+        language: "en"
+      });
+      this.conversation = r4?.conversation_id ?? this.conversation;
+      this.answer = r4?.response?.speech?.plain?.speech ?? "Hisho didn't answer.";
+    } catch (err) {
+      this.answer = `I couldn't reach Hisho (${err?.message ?? "error"}).`;
+    } finally {
+      this.busy = false;
+    }
+  }
+  render() {
+    if (!entityId(hub(this.hass), "assistant")) return b2``;
+    return b2`
+      <form class="ask" @submit=${this.ask}>
+        <span class="bubble sm accent">${icon(KANJI, "")}</span>
+        <input placeholder="Ask Hisho anything…" aria-label="Ask Hisho" />
+        <button class="send" type="submit" title="Ask" ?disabled=${this.busy}>${icon(mdiArrowUp, "")}</button>
+      </form>
+      ${this.asked ? b2`<div class="answer"><div class="q">${this.asked}</div>
+        <div class="a">${this.busy ? b2`<span class="thinking">${icon(mdiProgressClock, "")}Thinking…</span>` : this.answer}</div></div>` : ""}`;
+  }
+};
+for (const [tag, cls] of [["hisho-day", HishoDay], ["hisho-ask", HishoAsk]]) {
+  if (!customElements.get(tag)) customElements.define(tag, cls);
+}
+
 // src/cards/control-center.ts
 var HishoControlCenterCard = class extends HishoCard {
   static {
-    this.properties = { ...HishoCard.properties, expanded: { state: true } };
+    this.properties = { ...HishoCard.properties, selected: { state: true } };
   }
   static {
     this.styles = [cardStyles, i`
@@ -1300,60 +1534,62 @@ var HishoControlCenterCard = class extends HishoCard {
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    .hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin: 4px 0 22px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); align-items: end; gap: 24px; margin: 4px 0 22px; }
     .when { font-size: 0.8em; letter-spacing: 0.14em; text-transform: uppercase; color: var(--hisho-brown-text); font-weight: 600; }
-    h1 { margin: 6px 0 6px; font-size: clamp(1.7em, 4.2vw, 2.9em); font-weight: 300; letter-spacing: -0.01em; line-height: 1.1;
+    h1 { margin: 6px 0 8px; font-size: clamp(1.7em, 4.2vw, 2.9em); font-weight: 300; letter-spacing: -0.01em; line-height: 1.1;
       text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45); }
-    .summary { margin: 0; color: var(--hisho-text); opacity: 0.86; font-size: 1.02em; max-width: 60ch; line-height: 1.45; }
-    .seal { display: flex; align-items: center; gap: 12px; padding: 10px 16px 10px 10px; flex: none; }
-    .seal .bubble { width: 46px; height: 46px; }
-    .seal .bubble svg { width: 26px; height: 26px; }
-    .seal b { display: block; font-size: 1.05em; }
-    .seal small { color: var(--hisho-text-2); font-size: 0.82em; }
+    .summary { margin: 0; color: var(--hisho-text); opacity: 0.9; font-size: 1.05em; max-width: 62ch; line-height: 1.5; }
+    .askwrap { padding: 12px; }
 
-    .badges { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
-    .badge {
-      font: inherit; color: inherit; display: inline-flex; align-items: center; gap: 9px; padding: 6px 14px 6px 6px;
-      border-radius: 999px; cursor: pointer; text-align: left;
-    }
-    .badge:hover { background: rgba(30, 40, 32, 0.75); }
-    .badge b { display: block; font-size: 0.8em; font-weight: 600; }
-    .badge small { display: block; font-size: 0.74em; color: var(--hisho-text-2); }
-    .badge.on { border-color: color-mix(in srgb, var(--hisho-brown-text) 60%, transparent); }
-
-    .live { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
-    .lt { position: relative; overflow: hidden; padding: 16px 18px 0; cursor: pointer; display: flex; flex-direction: column;
-      min-height: 132px; transition: transform 0.15s, border-color 0.15s; }
-    .lt:hover { transform: translateY(-1px); border-color: rgba(255, 255, 255, 0.16); }
-    .lt .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .lt .lv { font-size: 2.6em; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
-    .lt .lv small { font-size: 0.42em; color: var(--hisho-text-2); margin-left: 3px; font-weight: 400; }
-    .lt .ll { margin-top: 6px; font-size: 0.86em; font-weight: 500; }
-    .lt .ls { font-size: 0.76em; color: var(--hisho-text-2); }
-    .lt .bubble { width: 34px; height: 34px; } .lt .bubble svg { width: 19px; height: 19px; }
-    .lt hisho-spark { margin: auto -18px 0; height: 44px; }
-    .lt.bad { border-color: color-mix(in srgb, var(--hisho-crit) 45%, transparent); }
-
-    .body { display: grid; grid-template-columns: minmax(0, 1.75fr) minmax(330px, 1fr); gap: 18px; align-items: start; }
+    .body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
+    .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
     .panel { padding: 16px 18px 18px; min-width: 0; }
-    .side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-    .machines .grid { grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
+    ul.dones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+    ul.dones li { display: flex; align-items: center; gap: 9px; padding: 5px 0; font-size: 0.92em; }
+    ul.dones li > svg { width: 16px; height: 16px; fill: var(--hisho-accent-text); flex: none; }
 
-    @container (max-width: 980px) { .live { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @container (max-width: 860px) {
-      .body { grid-template-columns: 1fr; }
-      .side { order: -1; }
-      .seal { display: none; }
+    /* The system: one line, every part as a status pill, the full card of one a tap away. */
+    .system { margin-bottom: 18px; padding: 12px 16px 14px; }
+    .sysbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .sysline { font-size: 0.92em; color: var(--hisho-text); }
+    .sysline b { font-weight: 600; } .sysline b.bad { color: var(--hisho-crit); } .sysline b.warnc { color: var(--hisho-warn); }
+    .sysgrid { display: flex; flex-wrap: wrap; gap: 6px 26px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--hisho-line); }
+    .sysgroup .eyebrow { margin-bottom: 7px; font-size: 0.68em; }
+    .pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    button.pill {
+      font: inherit; color: var(--hisho-text); display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+      background: var(--hisho-inset); border: 1px solid var(--hisho-line); border-radius: 10px; padding: 5px 10px 5px 9px;
+      transition: background 0.15s, border-color 0.15s;
     }
-    @container (max-width: 420px) { .lt .lv { font-size: 2.1em; } .badge small { display: none; } }
+    button.pill:hover { background: var(--hisho-inset-hi); }
+    button.pill.sel { border-color: color-mix(in srgb, var(--hisho-accent-text) 70%, transparent); background: var(--hisho-inset-hi); }
+    button.pill.bad { border-color: color-mix(in srgb, var(--hisho-crit) 45%, transparent); }
+    button.pill.warn { border-color: color-mix(in srgb, var(--hisho-warn) 40%, transparent); }
+    .pill .pn { font-size: 0.86em; font-weight: 500; white-space: nowrap; }
+    .pill .ps { font-size: 0.72em; color: var(--hisho-text-2); white-space: nowrap; }
+    .dot.ok { background: var(--hisho-ok); box-shadow: 0 0 7px var(--hisho-ok); } .dot.warn { background: var(--hisho-warn); }
+    .dot.bad { background: var(--hisho-crit); box-shadow: 0 0 7px var(--hisho-crit); } .dot.decide { background: var(--hisho-decide); }
+    .dot.brown { background: var(--hisho-brown-text); }
+    .drawer { position: relative; margin-top: 14px; padding: 14px 52px 14px 16px; border-radius: var(--hisho-radius);
+      background: var(--hisho-inset); border: 1px solid var(--hisho-line); animation: hisho-open 0.18s ease-out; }
+    @keyframes hisho-open { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+    .drawer .close { position: absolute; top: 10px; right: 10px; border: none; background: var(--hisho-soft); color: var(--hisho-text);
+      width: 28px; height: 28px; border-radius: 50%; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; z-index: 1; }
+    .drawer .close svg { width: 16px; height: 16px; fill: currentColor; }
+
+    @container (max-width: 860px) {
+      .hero { grid-template-columns: 1fr; }
+      .body { grid-template-columns: 1fr; }
+      .body > .col:last-child { order: -1; }
+    }
+    @container (max-width: 560px) {
+      .sysline { flex: 1 1 calc(100% - 52px); }
+      .sysbar > button { flex: 1 1 auto; justify-content: center; }
+    }
   `];
   }
   static getStubConfig() {
     return { type: "custom:hisho-control-center-card" };
-  }
-  constructor() {
-    super();
-    this.expanded = /* @__PURE__ */ new Set();
   }
   connectedCallback() {
     super.connectedCallback();
@@ -1369,11 +1605,6 @@ var HishoControlCenterCard = class extends HishoCard {
   getCardSize() {
     return 12;
   }
-  flip(id) {
-    const next = new Set(this.expanded);
-    if (!next.delete(id)) next.add(id);
-    this.expanded = next;
-  }
   body() {
     const hass2 = this.hass;
     const h3 = hub(hass2);
@@ -1384,14 +1615,12 @@ var HishoControlCenterCard = class extends HishoCard {
     const needs = entity(hass2, h3, "needs_you_count");
     const alerts = needs?.attributes.alerts ?? [];
     const critical = alerts.filter((a3) => a3.severity === "critical").length;
-    const decide = alerts.filter((a3) => a3.severity === "decision").length;
     const jobsEnt = entity(hass2, h3, "jobs_active");
     const jobs = jobsEnt?.attributes.jobs ?? [];
     const running = jobs.filter((j) => ["queued", "routed", "running"].includes(j.status)).length;
     const failed = jobs.filter((j) => j.status === "failed").length;
     const syncProblem = entity(hass2, h3, "sync_problem");
     const conflicts = entity(hass2, h3, "sync_conflicts");
-    const waiting = entity(hass2, h3, "projects_waiting");
     const fleetMaint = entityId(h3, "fleet_maintenance");
     const maintOn = fleetMaint ? hass2.states[fleetMaint]?.state === "on" : false;
     const coreDown = reach?.state === "off";
@@ -1401,148 +1630,121 @@ var HishoControlCenterCard = class extends HishoCard {
     const open = alerts.length;
     const syncBad = syncProblem?.state === "on";
     const { time, date } = localParts(hass2);
-    const live = (tone, value, of, label, sub, path, id, spark = "var(--hisho-accent-text)", max) => b2`
-      <div class="lt glass ${tone}" @click=${() => id && moreInfo(this, id)}>
-        <div class="top"><div><div class="lv">${value}${of ? b2`<small>${of}</small>` : ""}</div>
-          <div class="ll">${label}</div><div class="ls">${sub}</div></div>
-          <span class="bubble ${tone === "ok" ? "accent" : tone || "brown"}">${icon(path, "")}</span></div>
-        ${id ? b2`<hisho-spark .hass=${hass2} .entity=${id} .min=${0} .max=${max} .tone=${tone === "bad" ? "var(--hisho-crit)" : spark}></hisho-spark>` : ""}
-      </div>`;
-    const badge = (tone, path, label, sub, click, extra = "") => b2`
-      <button class="badge glass ${extra}" @click=${click}>
-        <span class="bubble sm ${tone}">${icon(path, "")}</span><span><b>${label}</b><small>${sub}</small></span></button>`;
+    const working = workingOn(hass2);
+    const done = doneForYou(hass2);
+    const projectsWaiting = waitingOnYou(hass2);
+    const todayOpen = Number(entity(hass2, h3, "today")?.state) || 0;
     return this.frame(b2`
       <div class="hero">
-        <div>
+        <div class="hello">
           <div class="when">${date} · ${time}</div>
           <h1>${this.config.title ?? greeting(hass2)}</h1>
-          <p class="summary">${this.summary(coreDown, nOnline, machines.length, nFaulted, open, critical, running, failed, syncBad)}</p>
+          <p class="summary">${this.summary(coreDown, open, critical, todayOpen, working.length, projectsWaiting.length)}</p>
         </div>
-        <div class="seal glass">
-          <span class="bubble ${coreDown ? "bad" : "accent"}">${icon(KANJI, "")}</span>
-          <span><b>Hisho</b><small>${coreDown ? "Core unreachable" : "Core answering"}</small></span>
-        </div>
+        <div class="askwrap glass"><hisho-ask .hass=${hass2}></hisho-ask></div>
       </div>
 
-      <div class="badges">
-        ${badge(
-      coreDown ? "bad" : "accent",
-      coreDown ? mdiCloudOffOutline : mdiCloudCheckOutline,
-      "Hisho Core",
-      coreDown ? "Unreachable" : "Up",
-      () => reach && moreInfo(this, reach.entity_id)
-    )}
-        ${badge(
-      syncBad ? "bad" : "accent",
-      syncBad ? mdiSyncAlert : mdiSync,
-      "Sync",
-      syncBad ? "Problem" : "In sync",
-      () => syncProblem && moreInfo(this, syncProblem.entity_id)
-    )}
-        ${available(waiting) ? badge(
-      Number(waiting.state) ? "brown" : "accent",
-      mdiAccountClockOutline,
-      "Projects",
-      Number(waiting.state) ? `${waiting.state} waiting on you` : "Nothing waiting",
-      () => navigate("projects")
-    ) : ""}
-        ${fleetMaint ? badge(
-      maintOn ? "brown" : "off",
-      mdiWrenchOutline,
-      "Fleet maintenance",
-      maintOn ? "On: alerts held" : "Off",
-      () => toggle(this, hass2, fleetMaint, !maintOn, maintOn ? void 0 : "Put the whole fleet in maintenance? Alerts, auto-park and jobs are held."),
-      maintOn ? "on" : ""
-    ) : ""}
-      </div>
-
-      <div class="live">
-        ${live(
-      nFaulted ? "bad" : nOnline === machines.length ? "ok" : "",
-      nOnline ?? "\u2013",
-      `/${machines.length}`,
-      "Machines online",
-      nFaulted ? `${nFaulted} faulted` : machines.length - (nOnline ?? 0) ? `${machines.length - (nOnline ?? 0)} parked or off` : "All up",
-      mdiServerNetwork,
-      online?.entity_id,
-      void 0,
-      machines.length
-    )}
-        ${live(
-      critical ? "bad" : open ? "warn" : "ok",
-      open,
-      "",
-      "Needs you",
-      critical ? `${critical} critical` : decide ? `${decide} to decide` : open ? "Nothing critical" : "All clear",
-      mdiBellRingOutline,
-      needs?.entity_id,
-      "var(--hisho-brown-text)"
-    )}
-        ${live(
-      failed ? "warn" : "ok",
-      running,
-      "",
-      "Jobs running",
-      failed ? `${failed} failed` : `${jobs.length} recent`,
-      mdiCogSyncOutline,
-      jobsEnt?.entity_id
-    )}
-        ${live(
-      nConflicts ? "warn" : "ok",
-      nConflicts ?? "\u2013",
-      "",
-      "Sync conflicts",
-      nConflicts ? "Files to sort out" : "None",
-      nConflicts ? mdiFileAlertOutline : mdiCheckDecagramOutline,
-      conflicts?.entity_id,
-      "var(--hisho-brown-text)"
-    )}
-      </div>
+      ${this.system(machines.length, nOnline, nFaulted, coreDown, syncBad, nConflicts, running, fleetMaint, maintOn)}
 
       <div class="body">
-        <section class="panel glass machines">
-          <div class="head"><span class="title">Machines</span>
-            <button class="more" @click=${() => navigate("machines")}>All machines ${icon(mdiArrowRight, "")}</button></div>
-          <div class="grid">${machines.map((m2) => machineTile(this, m2))}</div>
-        </section>
-        <div class="side">
+        <div class="col">
+          <section class="panel glass"><hisho-day .hass=${hass2}></hisho-day></section>
+          <section class="panel glass">
+            <div class="head"><span class="title">Hisho is working on</span>
+              ${failed ? b2`<span class="chip warn">${failed} failed</span>` : ""}</div>
+            ${working.length ? b2`<ul class="list">${working.map((w3) => b2`<li class="item bubbled">
+                <span class="bubble sm ${w3.tone}">${icon(w3.path, "")}</span>
+                <div class="bodycol"><span class="summary">${w3.what}</span><span class="muted">${w3.sub}</span></div></li>`)}</ul>` : b2`<div class="empty">${icon(mdiCoffeeOutline, "")}Nothing running right now. Ask Hisho for something.</div>`}
+            ${done.length ? b2`<div class="eyebrow" style="margin-top:16px">Done for you · last 24 hours</div>
+              <ul class="dones">${done.slice(0, 6).map((d4) => b2`<li>${icon(mdiCheck, "")}<span class="grow">${d4.what}</span>
+                <span class="muted">${d4.when}</span></li>`)}</ul>` : ""}
+          </section>
+        </div>
+        <div class="col">
           <section class="panel glass">
             <hisho-needs-you-card .hass=${hass2} .config=${{
       type: "custom:hisho-needs-you-card",
       embedded: true,
       compact: true,
+      title: "Needs your decision",
       limit: this.config.needs_you_limit ?? 6
     }}></hisho-needs-you-card>
-          </section>
-          <section class="panel glass">
-            <hisho-jobs-card .hass=${hass2} .config=${{
-      type: "custom:hisho-jobs-card",
-      embedded: true,
-      limit: this.config.jobs_limit ?? 5
-    }}></hisho-jobs-card>
+            ${projectsWaiting.length ? b2`<div class="eyebrow" style="margin-top:16px">Projects waiting on you</div>
+              <ul class="list">${projectsWaiting.slice(0, 4).map((p3) => b2`<li class="item bubbled">
+                <span class="bubble sm brown">${icon(mdiFolderAccountOutline, "")}</span>
+                <div class="bodycol"><span class="summary">${p3.title}</span>
+                  ${p3.asks?.length ? b2`<span class="muted">${p3.asks[0]}</span>` : p3.next ? b2`<span class="muted">Next: ${p3.next}</span>` : ""}</div>
+              </li>`)}</ul>` : ""}
           </section>
         </div>
       </div>
+
     `);
   }
-  /** One plain sentence on how things are, most important first. */
-  summary(coreDown, up, total, faulted, open, critical, running, failed, syncBad) {
+  /** The system, compact but all there: one line, then every machine, device and add-on as a status pill. Tap one
+   *  to open its full card (readings, services, buttons) right here. */
+  system(total, up, faulted, coreDown, syncBad, conflicts, running, fleetMaint, maintOn) {
+    const hass2 = this.hass;
+    const asleep = total - (up ?? 0);
+    const machines = byKind(hass2, "machine"), boxes = byKind(hass2, "box"), addons = byKind(hass2, "addon");
+    const tone = (d4) => {
+      const maint = entityId(d4, "maintenance");
+      if (maint && hass2.states[maint]?.state === "on") return ["brown", "maintenance"];
+      if (d4.kind === "machine") {
+        const st = entity(hass2, d4, "machine_state")?.state ?? "unknown";
+        return [stateClass(st), st];
+      }
+      if (d4.kind === "addon") {
+        const st = entity(hass2, d4, "addon_status")?.state ?? "unknown";
+        return [stateClass(st), st];
+      }
+      const health = entity(hass2, d4, "box_health")?.state, power = entity(hass2, d4, "box_state")?.state;
+      return health && stateClass(health) !== "ok" && stateClass(health) !== "off" ? [stateClass(health), health] : [stateClass(power ?? health), power ?? health ?? "unknown"];
+    };
+    const problems = [...machines, ...boxes, ...addons].filter((d4) => ["bad", "warn"].includes(tone(d4)[0])).length;
+    const healthy = !coreDown && !faulted && !syncBad && !problems;
+    const pill = (d4) => {
+      const [t3, word] = tone(d4);
+      return b2`<button class="pill ${t3} ${this.selected === d4.id ? "sel" : ""}"
+        @click=${() => this.selected = this.selected === d4.id ? void 0 : d4.id}>
+        <span class="dot ${t3}"></span><span class="pn">${d4.name}</span><span class="ps">${word}</span></button>`;
+    };
+    const chosen = [...machines, ...boxes, ...addons].find((d4) => d4.id === this.selected);
+    const group = (label, list) => list.length ? b2`<div class="sysgroup"><div class="eyebrow">${label}</div><div class="pills">${list.map(pill)}</div></div>` : "";
+    return b2`<section class="system glass">
+      <div class="sysbar">
+        <span class="bubble sm ${healthy ? "accent" : "bad"}">${icon(healthy ? mdiShieldCheckOutline : mdiShieldAlertOutline, "")}</span>
+        <span class="grow sysline">${coreDown ? b2`<b class="bad">Hisho Core isn't answering</b>` : b2`<b>${up ?? "\u2013"} of ${total}</b> machines up${asleep ? b2` <span class="muted">(${asleep} parked)</span>` : ""}${faulted ? b2`, <b class="bad">${faulted} faulted</b>` : ""} ·
+          Sync ${syncBad ? b2`<b class="bad">has a problem</b>` : "OK"}${conflicts ? ` \xB7 ${conflicts} conflict files` : ""}${problems ? b2` · <b class="warnc">${problems} need${problems === 1 ? "s" : ""} a look</b>` : ""}${running ? ` \xB7 ${running} job${running > 1 ? "s" : ""} running` : ""}`}</span>
+        ${fleetMaint ? b2`<button class="act ${maintOn ? "brown" : ""}" @click=${() => toggle(this, hass2, fleetMaint, !maintOn, maintOn ? void 0 : "Put the whole fleet in maintenance? Alerts, auto-park and jobs are held.")}>${icon(mdiWrenchOutline, "")}${maintOn ? "End fleet maintenance" : "Fleet maintenance"}</button>` : ""}
+        <button class="more" @click=${() => navigate("machines")}>Machines ${icon(mdiArrowRight, "")}</button>
+      </div>
+      <div class="sysgrid">${group("Machines", machines)}${group("Devices", boxes)}${group("Add-ons", addons)}</div>
+      ${chosen ? b2`<div class="drawer">
+        <button class="close" title="Close" @click=${() => this.selected = void 0}>${icon(mdiClose, "")}</button>
+        ${chosen.kind === "machine" ? b2`<hisho-machine-card .hass=${hass2} .config=${{ type: "custom:hisho-machine-card", machine: chosen.name, embedded: true }}></hisho-machine-card>` : b2`<hisho-device-card .hass=${hass2} .config=${{ type: "custom:hisho-device-card", device: chosen.name, embedded: true }}></hisho-device-card>`}
+      </div>` : ""}
+    </section>`;
+  }
+  /** One plain sentence about your day, most important first. */
+  summary(coreDown, open, critical, todo2, working, projects) {
     if (coreDown) return "Hisho Core isn't answering Home Assistant, so what you see here may be out of date.";
+    const plural = (n4, one, many = one + "s") => `${n4} ${n4 === 1 ? one : many}`;
     const parts = [];
-    if (up !== void 0) parts.push(faulted ? `${faulted} machine${faulted > 1 ? "s" : ""} faulted` : `${up} of ${total} machines are up`);
-    parts.push(critical ? `${open} thing${open > 1 ? "s" : ""} need${open > 1 ? "" : "s"} you (${critical} critical)` : open ? `${open} thing${open > 1 ? "s" : ""} need${open > 1 ? "" : "s"} you` : "nothing needs you");
-    if (running) parts.push(`${running} job${running > 1 ? "s" : ""} running`);
-    if (failed) parts.push(`${failed} failed`);
-    if (syncBad) parts.push("sync has a problem");
-    const text = parts.join(", ");
-    return text.charAt(0).toUpperCase() + text.slice(1) + ".";
+    const rest = open - critical;
+    if (critical) parts.push(rest ? `${plural(critical, "urgent thing")} and ${rest} more need you` : `${plural(critical, "urgent thing")} needs you`);
+    else if (open) parts.push(`${plural(open, "thing")} need${open === 1 ? "s" : ""} your answer`);
+    if (projects) parts.push(`${plural(projects, "project")} waiting on you`);
+    if (todo2) parts.push(`${plural(todo2, "to-do")} left today`);
+    const lead = parts.length ? parts.join(", ").replace(/^\w/, (c4) => c4.toUpperCase()) + "." : "Nothing needs you right now.";
+    return working ? `${lead} Hisho is working on ${plural(working, "thing")} for you.` : lead;
   }
 };
 
 // src/cards/machine-card.ts
 var HishoMachineCard = class extends HishoCard {
   static getStubConfig(hass2) {
-    const first = hass2 ? Object.values(hass2.devices ?? {}).find((d3) => d3.model && d3.via_device_id) : void 0;
+    const first = hass2 ? Object.values(hass2.devices ?? {}).find((d4) => d4.model && d4.via_device_id) : void 0;
     return { type: "custom:hisho-machine-card", machine: first?.name ?? "" };
   }
   setConfig(config) {
@@ -1564,24 +1766,25 @@ var HishoMachineCard = class extends HishoCard {
     const maint = entityId(m2, "maintenance");
     const row = (key, label) => {
       const s4 = entity(hass2, m2, key);
-      return available(s4) ? b2`<div class="row spread"><span class="muted">${label}</span>
+      return available(s4) ? b2`<div class="row spread kvrow"><span class="muted">${label}</span>
         <span>${s4.state}${s4.attributes.unit_of_measurement ? " " + s4.attributes.unit_of_measurement : ""}</span></div>` : "";
     };
     const isOn = entity(hass2, m2, "online")?.state === "on";
+    const spark = sparkReading(m2);
     const tone = stateClass(state?.state);
     const readings = [["Mem", "memory_usage"], ["Disk", "disk_usage"], ["GPU", "gpu_usage"]].map(([label, key]) => [label, pct(entity(hass2, m2, key)?.state)]).filter((r4) => r4[1] !== void 0);
-    return b2`<ha-card>
+    return this.frame(b2`<div class="mcard"><div class="mleft">
       <div class="mhead" style="margin-bottom:14px">
         <span class="bubble ${isOn ? tone === "ok" ? "accent" : tone : "off"}">${icon(machineIcon(m2), "")}</span>
         <span class="grow"><span class="name">${this.config.title ?? m2.name}</span>
           ${state?.attributes.role ? b2`<span class="muted ellipsis sub">${state.attributes.role}</span>` : ""}</span>
         <span class="chip ${tone}">${state?.state ?? "unknown"}</span>
       </div>
-      ${readings.length ? b2`<div class="rings" style="margin-bottom:12px">${readings.map(([label, v2]) => ring(label, v2))}</div>` : ""}
+      ${readings.length ? b2`<div class="rings" style="margin-bottom:12px;max-width:340px">${readings.map(([label, v2]) => ring(label, v2))}</div>` : ""}
       ${row("awake", "Parking")} ${row("jobs_running", "Jobs running")} ${row("jobs_queued", "Jobs queued")}
       ${row("containers_running", "Containers")} ${row("sync_connected", "Sync")}
       <div class="row" style="margin-top:8px">
-        ${power.includes("wake") && can2.has("machine.wake") ? b2`<button class="act" @click=${() => runAction(this, hass2, "machine.wake", target)}>Wake</button>` : ""}
+        ${power.includes("wake") && can2.has("machine.wake") ? b2`<button class="act" @click=${() => runAction(this, hass2, "machine.wake", target)}>${icon(mdiPower, "")}Wake</button>` : ""}
         ${power.includes("park") && can2.has("machine.park") ? b2`<button class="act danger" @click=${() => runAction(
       this,
       hass2,
@@ -1589,13 +1792,16 @@ var HishoMachineCard = class extends HishoCard {
       target,
       {},
       `Park ${m2.name}? It powers off until something needs it.`
-    )}>Park</button>` : ""}
-        ${maint ? b2`<button class="act ${hass2.states[maint]?.state === "on" ? "" : "danger"}" @click=${() => {
+    )}>${icon(mdiPowerSleep, "")}Park</button>` : ""}
+        ${maint ? b2`<button class="act ${hass2.states[maint]?.state === "on" ? "brown" : ""}" @click=${() => {
       const on = hass2.states[maint]?.state === "on";
       toggle(this, hass2, maint, !on, on ? void 0 : `Put ${m2.name} in maintenance? Its alerts are held and its VM shuts down.`);
-    }}>${hass2.states[maint]?.state === "on" ? "End maintenance" : "Maintenance"}</button>` : ""}
+    }}>${icon(mdiWrenchOutline, "")}${hass2.states[maint]?.state === "on" ? "End maintenance" : "Maintenance"}</button>` : ""}
       </div>
-      ${services.length || units.length ? b2`<div class="eyebrow" style="margin-top:18px">Services</div>` : ""}
+      ${spark ? b2`<div class="eyebrow" style="margin-top:18px">${spark[1]} · last 24 hours</div>
+        <hisho-spark .hass=${hass2} .entity=${spark[0]} .min=${0} .max=${100} style="height:56px"></hisho-spark>` : ""}
+      </div><div class="mright">
+      ${services.length || units.length ? b2`<div class="eyebrow">Services</div>` : ""}
       <ul class="list">
         ${services.map((s4) => b2`<li><div class="row spread"><span>${friendly(s4, m2)}</span>
           <span class="chip ${s4.state === "on" ? "ok" : "bad"}">${s4.state === "on" ? "running" : s4.attributes.state ?? "stopped"}</span></div></li>`)}
@@ -1624,8 +1830,8 @@ var HishoMachineCard = class extends HishoCard {
       a3.danger ? `${a3.label}: ${it.name} on ${m2.name}?` : void 0
     )}>${a3.label}</button>`)}</div>` : ""}
       </li>`)}</ul>
-      <button class="link" style="margin-top:12px;font-size:0.86em" @click=${() => state && moreInfo(this, state.entity_id)}>History…</button>
-    </ha-card>`;
+    </div></div>
+      <button class="link" style="margin-top:12px;font-size:0.86em" @click=${() => state && moreInfo(this, state.entity_id)}>History…</button>`);
   }
 };
 
@@ -1810,7 +2016,7 @@ var HishoDeviceCard = class extends HishoCard {
     const power = entity(hass2, dev, "box_state");
     const health = entity(hass2, dev, "box_health");
     const can2 = allowed(hass2);
-    return b2`<ha-card>
+    return this.frame(b2`
       <div class="head"><div class="title">${this.config.title ?? dev.name}</div>
         <span class="row"><span class="chip ${stateClass(power?.state)}">${power?.state ?? "unknown"}</span>
           <span class="chip ${stateClass(health?.state)}">${health?.state ?? "unknown"}</span></span></div>
@@ -1833,7 +2039,7 @@ var HishoDeviceCard = class extends HishoCard {
         </li>`;
     })}</ul>
       <div class="row" style="margin-top:8px">${this.maintenance(dev, dev.name)}</div>
-    </ha-card>`;
+    `);
   }
   addon(dev) {
     const hass2 = this.hass;
@@ -1841,7 +2047,7 @@ var HishoDeviceCard = class extends HishoCard {
     const enabled = entityId(dev, "addon_enabled");
     const a3 = status?.attributes ?? {};
     const allowedNow = allowed(hass2);
-    return b2`<ha-card>
+    return this.frame(b2`
       <div class="head"><div class="title">${this.config.title ?? dev.name}</div>
         <span class="chip ${stateClass(status?.state)}">${status?.state ?? "unknown"}</span></div>
       <div class="muted">${[a3.kind, a3.version && "v" + a3.version, a3.host && "on " + a3.host].filter(Boolean).join(" \xB7 ")}</div>
@@ -1863,7 +2069,7 @@ var HishoDeviceCard = class extends HishoCard {
     }}>${hass2.states[enabled]?.state === "on" ? "Turn off" : "Turn on"}</button>` : ""}
       </div>
       ${allowedNow.has("addon.config") ? this.settings(a3) : ""}
-    </ha-card>`;
+    `);
   }
   settings(a3) {
     const hass2 = this.hass;
@@ -2041,6 +2247,104 @@ var HishoStoreCard = class extends HishoCard {
   }
 };
 
+// src/cards/pulse-card.ts
+var HishoPulseCard = class extends HishoCard {
+  static {
+    this.styles = [cardStyles, i`
+    ha-card { background: none; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0; }
+    .live { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .lt { position: relative; overflow: hidden; padding: 16px 18px 0; cursor: pointer; display: flex; flex-direction: column;
+      min-height: 132px; transition: transform 0.15s, border-color 0.15s;
+      background: var(--hisho-glass); border: 1px solid var(--hisho-edge); border-radius: var(--hisho-radius-lg);
+      backdrop-filter: blur(20px) saturate(130%); -webkit-backdrop-filter: blur(20px) saturate(130%);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+    .lt:hover { transform: translateY(-1px); border-color: rgba(255, 255, 255, 0.16); }
+    .lt .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .lt .lv { font-size: 2.6em; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+    .lt .lv small { font-size: 0.42em; color: var(--hisho-text-2); margin-left: 3px; font-weight: 400; }
+    .lt .ll { margin-top: 6px; font-size: 0.86em; font-weight: 500; }
+    .lt .ls { font-size: 0.76em; color: var(--hisho-text-2); }
+    .lt .bubble { width: 34px; height: 34px; } .lt .bubble svg { width: 19px; height: 19px; }
+    .lt hisho-spark { margin: auto -18px 0; height: 44px; }
+    .lt.bad { border-color: color-mix(in srgb, var(--hisho-crit) 45%, transparent); }
+    @container (max-width: 760px) { .live { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  `];
+  }
+  static getStubConfig() {
+    return { type: "custom:hisho-pulse-card" };
+  }
+  getGridOptions() {
+    return { columns: "full", min_columns: 6 };
+  }
+  body() {
+    const hass2 = this.hass;
+    const h3 = hub(hass2);
+    const machines = byKind(hass2, "machine");
+    const online = entity(hass2, h3, "machines_online");
+    const faulted = entity(hass2, h3, "machines_faulted");
+    const needs = entity(hass2, h3, "needs_you_count");
+    const alerts = needs?.attributes.alerts ?? [];
+    const critical = alerts.filter((a3) => a3.severity === "critical").length;
+    const jobs = entity(hass2, h3, "jobs_active")?.attributes.jobs ?? [];
+    const running = jobs.filter((j) => ["queued", "routed", "running"].includes(j.status)).length;
+    const failed = jobs.filter((j) => j.status === "failed").length;
+    const conflicts = entity(hass2, h3, "sync_conflicts");
+    const nOnline = available(online) ? Number(online.state) : void 0;
+    const nFaulted = available(faulted) ? Number(faulted.state) : 0;
+    const nConflicts = available(conflicts) ? Number(conflicts.state) || 0 : void 0;
+    const tile = (tone, value, of, label, sub, path, id, spark = "var(--hisho-accent-text)", max) => b2`
+      <div class="lt ${tone}" @click=${() => id && moreInfo(this, id)}>
+        <div class="top"><div><div class="lv">${value}${of ? b2`<small>${of}</small>` : ""}</div>
+          <div class="ll">${label}</div><div class="ls">${sub}</div></div>
+          <span class="bubble ${tone === "ok" ? "accent" : tone || "brown"}">${icon(path, "")}</span></div>
+        ${id ? b2`<hisho-spark .hass=${hass2} .entity=${id} .min=${0} .max=${max}
+          .tone=${tone === "bad" ? "var(--hisho-crit)" : spark}></hisho-spark>` : ""}
+      </div>`;
+    return this.frame(b2`<div class="live">
+      ${tile(
+      nFaulted ? "bad" : nOnline === machines.length ? "ok" : "",
+      nOnline ?? "\u2013",
+      `/${machines.length}`,
+      "Machines online",
+      nFaulted ? `${nFaulted} faulted` : machines.length - (nOnline ?? 0) ? `${machines.length - (nOnline ?? 0)} parked or off` : "All up",
+      mdiServerNetwork,
+      online?.entity_id,
+      void 0,
+      machines.length
+    )}
+      ${tile(
+      critical ? "bad" : alerts.length ? "warn" : "ok",
+      alerts.length,
+      "",
+      "Needs you",
+      critical ? `${critical} critical` : alerts.length ? "Nothing critical" : "All clear",
+      mdiBellRingOutline,
+      needs?.entity_id,
+      "var(--hisho-brown-text)"
+    )}
+      ${tile(
+      failed ? "warn" : "ok",
+      running,
+      "",
+      "Jobs running",
+      failed ? `${failed} failed` : `${jobs.length} recent`,
+      mdiCogSyncOutline,
+      entityId(h3, "jobs_active")
+    )}
+      ${tile(
+      nConflicts ? "warn" : "ok",
+      nConflicts ?? "\u2013",
+      "",
+      "Sync conflicts",
+      nConflicts ? "Files to sort out" : "None",
+      nConflicts ? mdiFileAlertOutline : mdiCheckDecagramOutline,
+      conflicts?.entity_id,
+      "var(--hisho-brown-text)"
+    )}
+    </div>`);
+  }
+};
+
 // src/strategy.ts
 function glass(card) {
   return { ...card, card_mod: { style: HA_CARD_GLASS } };
@@ -2095,10 +2399,11 @@ function generateDashboard(hass2, config = {}) {
       type: "panel",
       cards: [{ type: "custom:hisho-control-center-card" }]
     },
-    sections(
-      { title: "Machines", path: "machines", icon: "mdi:server" },
-      machines.map((m2) => [{ type: "custom:hisho-machine-card", machine: m2.name }])
-    ),
+    // The system lives here, not on the Overview: the fleet's pulse across the top, then each machine.
+    sections({ title: "Machines", path: "machines", icon: "mdi:server" }, [
+      { type: "grid", column_span: 4, cards: [{ type: "custom:hisho-pulse-card", ...FULL }] },
+      ...machines.map((m2) => [{ type: "custom:hisho-machine-card", machine: m2.name }])
+    ]),
     // A group as wide as its devices (up to the four columns), its cards side by side inside it.
     sections(
       { title: "Devices", path: "devices", icon: "mdi:devices" },
@@ -2146,8 +2451,9 @@ var CARDS = [
     "hisho-control-center-card",
     HishoControlCenterCard,
     "Hisho control center",
-    "Hisho's Overview in one wide card: stats, machine tiles, needs you and jobs. Best in a panel view."
+    "Hisho's Overview in one wide card: your day, decisions, what Hisho is doing and did, Ask Hisho. Best in a panel view."
   ],
+  ["hisho-pulse-card", HishoPulseCard, "Hisho pulse", "Machines online, needs you, jobs, sync conflicts, with their last 24 hours."],
   ["hisho-fleet-card", HishoFleetCard, "Hisho fleet", "Every machine: state, readings, wake / park, maintenance."],
   ["hisho-machine-card", HishoMachineCard, "Hisho machine", "One machine in full: readings, services, its add-on buttons."],
   ["hisho-needs-you-card", HishoNeedsYouCard, "Hisho needs you", "Hisho's needs-you list: acknowledge, snooze, investigate."],
@@ -2407,7 +2713,44 @@ var day = (id) => {
     return { s: String(v2), lu: now - (48 - i5) * 1800 };
   });
 };
-hass.callWS = async (msg) => msg.type === "history/history_during_period" ? Object.fromEntries(msg.entity_ids.map((id) => [id, day(id)])) : todo;
+var iso = (min) => new Date(Date.now() - min * 6e4).toISOString();
+add("conversation.hisho", "hub", "assistant", "2026-10-26T09:00:00Z");
+add("sensor.hisho_done_for_you", "hub", "done_for_you", "5", { items: [
+  { at: iso(25), event: "answered", text: "Answered 3 questions for you" },
+  { at: iso(95), event: "job-transition", text: "Installed on Hashira Ren" },
+  { at: iso(160), event: "alert-investigate", text: "Looked into \u201CTrueNAS: pool Potter is unhealthy\u201D: disk sdh, or its cable; the disks also run hot (57 \xB0C)" },
+  { at: iso(240), event: "host-sleep", text: "Parked Hashira Ten while nothing needed it" },
+  { at: iso(420), event: "today-note", text: "Wrote today's note" }
+] });
+hass.states["todo.hisho_today"].state = "3";
+hass.states["sensor.hisho_jobs_active"].attributes.jobs = [
+  { id: "job-1", kind: "transcribe", status: "running", worker: "souko", updated_at: iso(12) },
+  { id: "job-2", kind: "transcribe", status: "failed", worker: "souko", reason: "no input", updated_at: iso(300) },
+  { id: "job-3", kind: "install", status: "done", worker: "hashira-ren", updated_at: iso(95) },
+  { id: "job-4", kind: "transcribe", status: "done", worker: "hashira-ten", updated_at: iso(420) }
+];
+hass.states["sensor.hisho_projects_active"].attributes.projects = [
+  { name: "ha", title: "Hisho in Home Assistant", status: "active", waiting_on: "claude", next: "Assistant-first Overview" },
+  { name: "sec", title: "Security follow-ups", status: "active", waiting_on: "jonathan", asks: ["Rotate the reused password"] },
+  { name: "pp", title: "Patriot Point website", status: "active", waiting_on: "jonathan", asks: ["Approve the new home page"] }
+];
+var today = { items: [
+  { uid: "t1", summary: "Swap the failing disk in Potter (ZX212N0K)", status: "needs_action" },
+  { uid: "t2", summary: "Confirm the SAM.gov renewal for Patriot Point", status: "needs_action" },
+  { uid: "t3", summary: "Send Randy the Web Factory notes", status: "needs_action" },
+  { uid: "t4", summary: "Review the Hisho dashboard redesign", status: "completed" }
+] };
+var d3 = (n4) => {
+  const x2 = /* @__PURE__ */ new Date();
+  x2.setDate(x2.getDate() + n4);
+  return x2.toISOString().slice(0, 10);
+};
+hass.callApi = async (method, path) => path.startsWith("calendars/") ? [
+  { summary: "PatriotPoint: SAM.gov renewal", start: { date: d3(3) } },
+  { summary: "YepizTech: Golden Coast invoice", start: { date: d3(5) } },
+  { summary: "Skybuilders: site launch", start: { date: d3(11) } }
+] : [];
+hass.callWS = async (msg) => msg.type === "history/history_during_period" ? Object.fromEntries(msg.entity_ids.map((id) => [id, day(id)])) : msg.type === "todo/item/list" && msg.entity_id === "todo.hisho_today" ? today : todo;
 var el = document.createElement("hisho-control-center-card");
 el.setConfig({ type: "custom:hisho-control-center-card" });
 el.hass = hass;
