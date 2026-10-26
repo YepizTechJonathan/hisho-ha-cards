@@ -7,8 +7,11 @@ import { HishoDeviceCard } from "./cards/device-card";
 import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
 import { HishoStoreCard } from "./cards/store-card";
 import { HishoDashboardStrategy } from "./strategy";
+import { registerIcons } from "./icons";
 
-export const VERSION = "0.4.2";
+export const VERSION = "0.4.3";
+
+registerIcons();
 
 const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-control-center-card", HishoControlCenterCard, "Hisho control center",

@@ -33,6 +33,16 @@ async function answer(root: ShadowRoot, yes: boolean) {
 
 const runs = (hass: any) => hass.callService.mock.calls.filter((c: any[]) => c[0] === "hisho" && c[1] === "run_action").map((c: any[]) => c[2]);
 
+describe("icons", () => {
+  it("offers hisho:kanji to Home Assistant (the app's 秘)", async () => {
+    const set = (window as any).customIcons.hisho;
+    expect(await set.getIconList()).toEqual([{ name: "kanji" }]);
+    const icon = await set.getIcon("kanji");
+    expect(icon.viewBox).toBe("0 0 24 24");
+    expect(icon.path.length).toBeGreaterThan(500);
+  });
+});
+
 describe("finding Hisho", () => {
   it("sorts the integration's devices into hub, machines, boxes and add-ons", () => {
     const kinds = Object.fromEntries(hishoDevices(fakeHass()).map((d) => [d.name, d.kind]));
