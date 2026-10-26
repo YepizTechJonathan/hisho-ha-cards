@@ -8,4 +8,12 @@
   body { font-family: Roboto, system-ui, sans-serif; background:#f0f0f0; margin:16px; }
   ha-card { display:block; background:var(--card-background-color); border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,.12); }
   #grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap:16px; align-items:start; }
-</style></head><body><div id="grid"></div><script type="module" src="demo.js"></script></body></html>
+</style></head><body><div id="grid"></div>
+<script>
+  // Home Assistant provides <ha-card>; this stand-in gives the demo the same frame.
+  customElements.define("ha-card", class extends HTMLElement {
+    constructor() { super(); const r = this.attachShadow({mode: "open"});
+      r.innerHTML = `<style>:host{display:block;background:var(--card-background-color);border-radius:12px;
+        box-shadow:0 2px 6px rgba(0,0,0,.14);color:var(--primary-text-color)}</style><slot></slot>`; }
+  });
+</script><script type="module" src="demo.js"></script></body></html>

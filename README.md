@@ -3,6 +3,8 @@
 A dashboard for [Hisho](https://github.com/YepizTechJonathan/hisho-ha): cards with the controls of Hisho's
 own Command Center, and a **Hisho dashboard** Home Assistant builds by itself from your fleet.
 
+![Hisho cards: fleet, needs you, a machine, a TrueNAS box, jobs and projects](docs/screenshot.png)
+
 Needs the **Hisho** integration ([hisho-ha](https://github.com/YepizTechJonathan/hisho-ha), v1.2.0 or later),
 paired with Hisho. The cards talk only to Home Assistant (its entities and the `hisho.*` services), never to
 Hisho directly, so no Hisho key is ever in your browser. What they offer follows what Hisho lets this Home
