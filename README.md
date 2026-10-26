@@ -8,7 +8,9 @@ own Command Center, and a **Hisho dashboard** Home Assistant builds by itself fr
 Needs the **Hisho** integration ([hisho-ha](https://github.com/YepizTechJonathan/hisho-ha), v1.2.0 or later),
 paired with Hisho. The cards talk only to Home Assistant (its entities and the `hisho.*` services), never to
 Hisho directly, so no Hisho key is ever in your browser. What they offer follows what Hisho lets this Home
-Assistant do; risky actions (park, stop, shut down, archive...) ask first.
+Assistant do; risky actions (park, stop, shut down, archive...) ask first. They are for Home Assistant
+**administrators**: a regular user sees a notice instead (and the integration refuses their presses anyway).
+Make the Hisho dashboard admin-only too: Settings › Dashboards › Hisho › *Admin only*.
 
 ## The Hisho dashboard
 

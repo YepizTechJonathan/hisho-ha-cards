@@ -82,6 +82,14 @@ describe("fleet card", () => {
     expect([...root.querySelectorAll("button")].map((b) => b.textContent?.trim())).not.toContain("Wake");
   });
 
+  it("shows nothing but a notice to a non-admin user", async () => {
+    const hass = fakeHass();
+    (hass as any).user = { id: "u", name: "Kid", is_admin: false };
+    const { root } = await mount("hisho-fleet-card", {}, hass);
+    expect(root.textContent).toContain("for Home Assistant administrators");
+    expect(root.querySelectorAll("button").length).toBe(0);
+  });
+
   it("explains when the integration is missing", async () => {
     const { root } = await mount("hisho-fleet-card", {}, fakeHass({ noHisho: true }));
     expect(root.textContent).toContain("Add integration");

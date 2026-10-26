@@ -24,6 +24,9 @@ export abstract class HishoCard extends LitElement {
 
   render() {
     if (!this.hass || !this.config) return html``;
+    if (this.hass.user && !this.hass.user.is_admin) {
+      return html`<ha-card><div class="empty">Hisho is for Home Assistant administrators.</div></ha-card>`;
+    }
     if (!hub(this.hass)) {
       return html`<ha-card><div class="empty">
         The Hisho integration is not set up: Settings › Devices &amp; services › Add integration › Hisho.
