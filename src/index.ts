@@ -9,7 +9,7 @@ import { HishoStoreCard } from "./cards/store-card";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
-export const VERSION = "0.4.3";
+export const VERSION = "0.4.4";
 
 registerIcons();
 

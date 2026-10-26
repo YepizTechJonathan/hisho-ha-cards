@@ -41,6 +41,21 @@ describe("icons", () => {
     expect(icon.viewBox).toBe("0 0 24 24");
     expect(icon.path.length).toBeGreaterThan(500);
   });
+
+  it("makes a hisho: icon drawn before the set existed (the sidebar) look again", async () => {
+    const { refreshIcons } = await import("../src/icons");
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: "open" });
+    const stale: any = document.createElement("ha-icon");
+    Object.assign(stale, { icon: "hisho:kanji", _legacy: true, updateComplete: Promise.resolve(true) });
+    const other: any = document.createElement("ha-icon");
+    Object.assign(other, { icon: "mdi:home", _legacy: true });
+    shadow.append(stale, other);
+    expect(await refreshIcons()).toBe(1);
+    expect(stale).toMatchObject({ icon: "hisho:kanji", _legacy: false });
+    expect(other._legacy).toBe(true); // not ours: left alone
+  });
 });
 
 describe("finding Hisho", () => {

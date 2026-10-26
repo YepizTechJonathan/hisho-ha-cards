@@ -6,10 +6,38 @@ const KANJI =
 
 const ICONS: Record<string, string> = { kanji: KANJI };
 
+/** ha-icon elements anywhere in the page, shadow roots included. */
+function haIcons(root: Document | ShadowRoot, out: any[] = []): any[] {
+  for (const el of Array.from(root.querySelectorAll("*")) as any[]) {
+    if (el.localName === "ha-icon") out.push(el);
+    if (el.shadowRoot) haIcons(el.shadowRoot, out);
+  }
+  return out;
+}
+
+/** Home Assistant draws the sidebar before it loads dashboard resources (this file), so the Hisho dashboard's
+ *  \`hisho:kanji\` was drawn when no such icon set existed: ha-icon gave up (its "legacy" fallback, a blank icon)
+ *  and never looks again. Make those icons look again now that the set is registered. */
+export async function refreshIcons(doc: Document = document): Promise<number> {
+  const stale = haIcons(doc).filter((i) => typeof i.icon === "string" && i.icon.startsWith("hisho:"));
+  for (const i of stale) {
+    const name = i.icon;
+    i._legacy = false;
+    i.icon = undefined;
+    await i.updateComplete;
+    i.icon = name;
+  }
+  return stale.length;
+}
+
 export function registerIcons(w: any = window) {
   w.customIcons = w.customIcons || {};
   w.customIcons.hisho = {
     getIcon: async (name: string) => ({ path: ICONS[name] ?? KANJI, viewBox: "0 0 24 24" }),
     getIconList: async () => Object.keys(ICONS).map((name) => ({ name })),
   };
+  // Now, and again shortly after in case the sidebar was still being drawn.
+  if (typeof document !== "undefined") {
+    for (const ms of [0, 1500, 5000]) setTimeout(() => void refreshIcons().catch(() => undefined), ms);
+  }
 }
