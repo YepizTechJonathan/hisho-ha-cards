@@ -1,0 +1,6 @@
+{
+  "name": "Hisho cards",
+  "filename": "hisho-ha-cards.js",
+  "render_readme": true,
+  "homeassistant": "2025.2.0"
+}

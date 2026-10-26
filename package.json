@@ -1,0 +1,23 @@
+{
+  "name": "hisho-ha-cards",
+  "version": "0.1.0",
+  "description": "Hisho dashboard cards and a dashboard strategy for Home Assistant",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --format=esm --target=es2022 --minify --outfile=dist/hisho-ha-cards.js",
+    "watch": "npm run build -- --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "lit": "^3.3.3"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2",
+    "happy-dom": "^21.0.4",
+    "typescript": "^7.0.2",
+    "vitest": "^4.0.5"
+  }
+}

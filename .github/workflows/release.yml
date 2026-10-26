@@ -1,0 +1,22 @@
+name: Release asset
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  asset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci && npm run build
+      - run: gh release upload "${{ github.event.release.tag_name }}" dist/hisho-ha-cards.js --clobber
+        env:
+          GH_TOKEN: ${{ github.token }}
