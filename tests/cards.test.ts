@@ -44,7 +44,10 @@ describe("finding Hisho", () => {
 describe("the Hisho dashboard strategy", () => {
   it("builds a view per area from what the integration reports", () => {
     const dash = generateDashboard(fakeHass());
-    expect(dash.views.map((v) => v.path)).toEqual(["overview", "machines", "devices", "addons", "projects", "phone"]);
+    expect(dash.views.map((v) => v.path)).toEqual(["overview", "machines", "devices", "addons", "today", "projects", "phone"]);
+    expect(dash.views[4].cards).toEqual([
+      { type: "todo-list", entity: "todo.hisho_today", title: "Today" },
+      { type: "calendar", entities: ["calendar.hisho_due_dates"], initial_view: "dayGridMonth", title: "Due dates" }]);
     expect(dash.views[1].cards.map((c) => c.machine)).toEqual(["Hashira Ren", "Souko"]);
     const devices = dash.views[2].cards.map((c) => c.heading ?? c.device);
     expect(devices).toEqual(["Servers", "ionos", "Storage", "truenas"]);

@@ -33,6 +33,8 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
   const hubEntities = ["core_reachable", "critical_alert", "needs_you_count", "machines_online", "machines_faulted",
     "jobs_active", "jobs_failed", "sync_problem", "sync_conflicts"]
     .map((k) => entityId(h, k)).filter((id): id is string => !!id);
+  const todayList = entityId(h, "today");
+  const dueDates = entityId(h, "due_dates");
   const phone = ["phone", "clear_phone", "hide_acked"].map((k) => entityId(h, k)).filter((id): id is string => !!id);
 
   const groups = new Map<string, string[]>();
@@ -68,6 +70,13 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
         title: "Add-ons", path: "addons", icon: "mdi:puzzle",
         cards: addons.map((a) => ({ type: "custom:hisho-device-card", device: a.name })),
       },
+      ...(todayList || dueDates ? [{
+        title: "Today", path: "today", icon: "mdi:calendar-today",
+        cards: [
+          ...(todayList ? [{ type: "todo-list", entity: todayList, title: "Today" }] : []),
+          ...(dueDates ? [{ type: "calendar", entities: [dueDates], initial_view: "dayGridMonth", title: "Due dates" }] : []),
+        ],
+      }] : []),
       {
         title: "Projects", path: "projects", icon: "mdi:folder-multiple",
         cards: [{ type: "custom:hisho-projects-card" }, { type: "custom:hisho-jobs-card", title: "All jobs", limit: 50 }],

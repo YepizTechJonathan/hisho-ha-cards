@@ -27,6 +27,8 @@ export function fakeHass(overrides: Partial<{ allowed: string[]; noHisho: boolea
       { id: "a1", severity: "critical", title: "TrueNAS: pool Potter is unhealthy" }] }],
     ["todo.hisho_needs_you", "hub", "needs_you", "1"],
     ["switch.hisho_fleet_maintenance", "hub", "fleet_maintenance", "off"],
+    ["todo.hisho_today", "hub", "today", "1"],
+    ["calendar.hisho_due_dates", "hub", "due_dates", "off"],
     ["sensor.hisho_jobs_active", "hub", "jobs_active", "1", { jobs: [
       { id: "job-1", kind: "transcribe", status: "running", worker: "souko" },
       { id: "job-2", kind: "transcribe", status: "failed", worker: "souko", reason: "no input" }] }],
