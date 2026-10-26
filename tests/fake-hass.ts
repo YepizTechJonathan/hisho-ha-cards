@@ -10,7 +10,9 @@ export function fakeHass(overrides: Partial<{ allowed: string[]; noHisho: boolea
   const allowed = overrides.allowed ?? ["machine.wake", "machine.park", "alert.ack", "alert.unack", "alert.snooze",
     "alert.investigate", "alert.notify", "device.press", "addon.run", "job.cancel", "job.retry", "job.clear",
     "jobs.reap", "project.open", "project.archive", "unit.start", "unit.stop", "unit.restart",
-    "maintenance.on", "maintenance.off", "addon.enable", "addon.disable"];
+    "maintenance.on", "maintenance.off", "addon.enable", "addon.disable", "addon.config", "addon.entry", "addon.test",
+    "addon.apply", "store.install", "store.update", "store.rollback", "store.remove", "repository.add",
+    "repository.update", "repository.remove"];
   const devices: HomeAssistant["devices"] = {
     hub: { id: "hub", name: "Hisho", model: "Control plane", entry_type: "service" },
     ren: { id: "ren", name: "Hashira Ren", model: "hashira-gpu", via_device_id: "hub" },
@@ -28,6 +30,11 @@ export function fakeHass(overrides: Partial<{ allowed: string[]; noHisho: boolea
     ["todo.hisho_needs_you", "hub", "needs_you", "1"],
     ["switch.hisho_fleet_maintenance", "hub", "fleet_maintenance", "off"],
     ["todo.hisho_today", "hub", "today", "1"],
+    ["sensor.hisho_addon_updates", "hub", "addon_updates", "1", {
+      store: [{ name: "web-factory", title: "Web Factory", installed: true, installed_version: "0.6.0", version: "0.7.0",
+                update_available: true, host: "kihon", previous: "0.5.0", description: "Builds sites" },
+              { name: "vikunja", title: "Vikunja", installed: false, version: "0.2.0", description: "Tasks" }],
+      repositories: [{ url: "https://github.com/me/hisho-addon-x", name: "me/hisho-addon-x", listed: null }] }],
     ["calendar.hisho_due_dates", "hub", "due_dates", "off"],
     ["sensor.hisho_jobs_active", "hub", "jobs_active", "1", { jobs: [
       { id: "job-1", kind: "transcribe", status: "running", worker: "souko" },
@@ -52,7 +59,11 @@ export function fakeHass(overrides: Partial<{ allowed: string[]; noHisho: boolea
       entry: "PVE", item_id: "521", facts: ["VM 521 on pve"], actions: [{ id: "shutdown", label: "shut down", danger: true }] }],
     ["sensor.ionos_power", "ionos", "box_state", "on"],
     ["sensor.web_factory_status", "wf", "addon_status", "ok", { addon: "web-factory", kind: "integration", version: "0.6.0",
-      problems: [], actions: [{ id: "deploy-dev", label: "Deploy dev now", danger: false }] }],
+      problems: [], actions: [{ id: "deploy-dev", label: "Deploy dev now", danger: false }],
+      settings: { schema: { builder: "list(claude|codex)", builder_timeout: "int", worker_token: "password" },
+        options: { builder: "claude", builder_timeout: 1800, worker_token: "WEBFACTORY_TOKEN" },
+        entry_label: "Site", entry_schema: { domain: "str", token: "password?" }, entry_form: { domain: "Domain" },
+        entries: ["yepiz-tech"] } }],
   ];
   const states: Record<string, HassEntity> = {};
   const entities: HomeAssistant["entities"] = {};

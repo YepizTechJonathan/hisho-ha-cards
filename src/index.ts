@@ -4,9 +4,10 @@ import { HishoMachineCard } from "./cards/machine-card";
 import { HishoNeedsYouCard } from "./cards/needs-you-card";
 import { HishoDeviceCard } from "./cards/device-card";
 import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
+import { HishoStoreCard } from "./cards/store-card";
 import { HishoDashboardStrategy } from "./strategy";
 
-export const VERSION = "0.2.0";
+export const VERSION = "0.3.0";
 
 const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-fleet-card", HishoFleetCard, "Hisho fleet", "Every machine: state, readings, wake / park, maintenance."],
@@ -15,6 +16,7 @@ const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-device-card", HishoDeviceCard, "Hisho device", "A box an add-on knows (TrueNAS, a Proxmox host...) or an add-on."],
   ["hisho-jobs-card", HishoJobsCard, "Hisho jobs", "Hisho's jobs: cancel, retry, clear."],
   ["hisho-projects-card", HishoProjectsCard, "Hisho projects", "Active projects, what waits on you, open or archive."],
+  ["hisho-store-card", HishoStoreCard, "Hisho add-on store", "Install, update, roll back or remove add-ons; repositories."],
 ];
 
 for (const [tag, cls] of CARDS) {

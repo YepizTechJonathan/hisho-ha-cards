@@ -51,7 +51,8 @@ describe("the Hisho dashboard strategy", () => {
     expect(dash.views[1].cards.map((c) => c.machine)).toEqual(["Hashira Ren", "Souko"]);
     const devices = dash.views[2].cards.map((c) => c.heading ?? c.device);
     expect(devices).toEqual(["Servers", "ionos", "Storage", "truenas"]);
-    expect(dash.views[3].cards).toEqual([{ type: "custom:hisho-device-card", device: "Web Factory" }]);
+    expect(dash.views[3].cards).toEqual([{ type: "custom:hisho-store-card" },
+      { type: "custom:hisho-device-card", device: "Web Factory" }]);
   });
 
   it("says how to set Hisho up when it is not there", () => {
@@ -161,3 +162,41 @@ describe("jobs and projects cards", () => {
     expect(titles[0]).toContain("Rotate the password");
   });
 });
+
+describe("Hisho's setup (phase D)", () => {
+  it("saves only changed settings and refuses a secret value", async () => {
+    const { root, hass } = await mount("hisho-device-card", { device: "Web Factory" });
+    const form = root.querySelector("form.settings") as HTMLFormElement;
+    (form.elements.namedItem("builder_timeout") as HTMLInputElement).value = "900";
+    (form.elements.namedItem("worker_token") as HTMLInputElement).value = "sk-live-secret-value";
+    form.dispatchEvent(new Event("submit", { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(runs(hass)).toEqual([]);
+    expect(root.textContent).toContain("give the secret's name");
+    (form.elements.namedItem("worker_token") as HTMLInputElement).value = "WEBFACTORY_TOKEN";
+    form.dispatchEvent(new Event("submit", { cancelable: true }));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(runs(hass)).toEqual([{ action: "addon.config", target: "web-factory", args: { settings: { builder_timeout: 900 } }, confirm: false }]);
+  });
+
+  it("removes an entry only after asking", async () => {
+    const { root, hass } = await mount("hisho-device-card", { device: "Web Factory" });
+    button(root, "Remove").click();
+    await answer(root, true);
+    expect(runs(hass)).toEqual([{ action: "addon.entry", target: "web-factory",
+      args: { entry: "yepiz-tech", settings: { _remove: true } }, confirm: true }]);
+  });
+
+  it("store: updates, installs, asks before removing", async () => {
+    const { root, hass } = await mount("hisho-store-card", {});
+    expect(root.textContent).toContain("0.6.0 → 0.7.0");
+    button(root, "Update").click();
+    button(root, "Install").click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(runs(hass).map((r: any) => [r.action, r.target])).toEqual([["store.update", "web-factory"], ["store.install", "vikunja"]]);
+    [...root.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Remove" && b.closest("li")?.textContent?.includes("Web Factory"))!.click();
+    await answer(root, true);
+    expect(runs(hass).at(-1)).toMatchObject({ action: "store.remove", target: "web-factory", confirm: true });
+  });
+});
+

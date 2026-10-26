@@ -35,7 +35,7 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
     .map((k) => entityId(h, k)).filter((id): id is string => !!id);
   const todayList = entityId(h, "today");
   const dueDates = entityId(h, "due_dates");
-  const phone = ["phone", "clear_phone", "hide_acked"].map((k) => entityId(h, k)).filter((id): id is string => !!id);
+  const phone = ["phone", "phone_alerts", "clear_phone", "hide_acked"].map((k) => entityId(h, k)).filter((id): id is string => !!id);
 
   const groups = new Map<string, string[]>();
   for (const b of boxes) {
@@ -68,7 +68,10 @@ export function generateDashboard(hass: HomeAssistant): { title: string; views: 
       },
       {
         title: "Add-ons", path: "addons", icon: "mdi:puzzle",
-        cards: addons.map((a) => ({ type: "custom:hisho-device-card", device: a.name })),
+        cards: [
+          ...(entityId(h, "addon_updates") ? [{ type: "custom:hisho-store-card" }] : []),
+          ...addons.map((a) => ({ type: "custom:hisho-device-card", device: a.name })),
+        ],
       },
       ...(todayList || dueDates ? [{
         title: "Today", path: "today", icon: "mdi:calendar-today",
