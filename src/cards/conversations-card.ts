@@ -135,8 +135,8 @@ export class HishoConversationsCard extends HishoCard {
     if (!t) return html`<div class="empty">Loading…</div>`;
     return html`<div class="talk">${(t.messages ?? []).map((m) => m.role === "user"
       ? html`<div class="q"><span class="muted">${when(m.at, this.timezone)}${m.area ? ` · ${m.area}` : ""}</span>
-          <div>${m.text}</div></div>`
-      : html`<div class="a ${m.ok === false ? "failed" : ""}"><div>${m.text || m.error || "(no answer)"}</div>
+          <div class="text">${m.text}</div></div>`
+      : html`<div class="a ${m.ok === false ? "failed" : ""}"><div class="text">${m.text || m.error || "(no answer)"}</div>
           <span class="muted">${[m.model, m.seconds !== undefined ? `${m.seconds} s` : "",
             m.ok === false && m.error ? m.error : ""].filter(Boolean).join(" · ")}</span></div>`)}</div>`;
   }
@@ -147,7 +147,8 @@ export class HishoConversationsCard extends HishoCard {
     return this.frame(html`
       <style>
         .talk { display: flex; flex-direction: column; gap: 6px; padding: 4px 0 2px; }
-        .talk .q, .talk .a { border-radius: var(--hisho-radius); padding: 6px 9px; max-width: 85%; white-space: pre-wrap; }
+        .talk .q, .talk .a { border-radius: var(--hisho-radius); padding: 6px 9px; max-width: 85%; }
+        .talk .text { white-space: pre-wrap; }
         .talk .q { align-self: flex-end; background: color-mix(in srgb, var(--hisho-decide) 14%, transparent); }
         .talk .a { align-self: flex-start; background: var(--hisho-soft); }
         .talk .a.failed { border-left: 3px solid var(--hisho-crit); }

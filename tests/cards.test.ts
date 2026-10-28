@@ -436,6 +436,8 @@ describe("conversations card", () => {
     expect(hass.callWS).toHaveBeenCalledWith({ type: "hisho/conversations/get", conversation_id: "c1" });
     expect(root.querySelector(".talk")!.textContent).toContain("It's 72 degrees.");
     expect(root.querySelector(".talk")!.textContent).toContain("haiku · 4.2 s");
+    // only the words keep their line breaks, not the bubble's own markup (0.5/0.6.0 bubbles had blank lines)
+    expect([...root.querySelectorAll(".talk .text")].map((t) => t.textContent)).toEqual(["how warm is it?", "It's 72 degrees."]);
   });
 
   it("filters by person", async () => {
