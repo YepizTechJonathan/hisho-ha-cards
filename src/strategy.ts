@@ -103,6 +103,10 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
         { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-projects-card", ...FULL }] },
         { type: "grid", column_span: 2, cards: [{ type: "custom:hisho-jobs-card", title: "All jobs", limit: 50, ...FULL }] },
       ]),
+      // What people asked Hisho through Assist (Hisho keeps it 30 days); the card says so to non-admins, like the rest.
+      sections({ title: "Conversations", path: "conversations", icon: "mdi:message-text-clock" }, [
+        { type: "grid", column_span: 3, cards: [{ type: "custom:hisho-conversations-card", ...FULL }] },
+      ]),
       sections({ title: "Phone", path: "phone", icon: "mdi:cellphone-message" }, [[
         glass({ type: "entities", title: "Hisho phone app", entities: phone }),
         glass({ type: "markdown", content: "Send a message to the Hisho phone app from an automation or script with " +

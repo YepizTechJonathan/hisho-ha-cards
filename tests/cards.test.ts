@@ -70,7 +70,7 @@ describe("finding Hisho", () => {
 describe("the Hisho dashboard strategy", () => {
   it("builds a view per area from what the integration reports", () => {
     const dash = generateDashboard(fakeHass());
-    expect(dash.views.map((v) => v.path)).toEqual(["overview", "machines", "devices", "addons", "today", "projects", "phone"]);
+    expect(dash.views.map((v) => v.path)).toEqual(["overview", "machines", "devices", "addons", "today", "projects", "conversations", "phone"]);
     // the Overview is the Control Center, full width; the rest are sections views (columns that fill the screen)
     expect(dash.views[0]).toMatchObject({ type: "panel", cards: [{ type: "custom:hisho-control-center-card" }] });
     expect(dash.views.slice(1).every((v) => v.type === "sections" && v.max_columns === 4)).toBe(true);
@@ -93,6 +93,12 @@ describe("the Hisho dashboard strategy", () => {
     expect(viewBackground()).toContain('url("/hisho_static/forest.jpg")');
     expect(own.views[3].background).toContain('url("/local/lake.jpg")');
     expect(generateDashboard(fakeHass(), { background: "" }).views[0].background).not.toContain("url(");
+  });
+
+  it("has a Conversations view with the conversations card across it", () => {
+    const view = generateDashboard(fakeHass()).views.find((v) => v.path === "conversations")!;
+    expect(view.sections).toEqual([{ type: "grid", column_span: 3,
+      cards: [{ type: "custom:hisho-conversations-card", grid_options: { columns: "full" } }] }]);
   });
 
   it("says how to set Hisho up when it is not there", () => {
@@ -392,5 +398,79 @@ describe("sparklines", () => {
     expect(hass.callWS).toHaveBeenCalledTimes(1);
     expect(hass.callWS.mock.calls[0][0]).toMatchObject({ type: "history/history_during_period", entity_ids: ["sensor.x"],
       minimal_response: true, no_attributes: true, start_time: "2026-10-25T10:00:00.000Z" });
+  });
+});
+
+describe("conversations card", () => {
+  const LIST = { timezone: "America/Los_Angeles", keep_days: 30, conversations: [
+    { session_id: "c1", title: "how warm is it?", person: "Ana", area: "Kitchen", updated: "2026-10-28T21:10:00+00:00", messages: 2 },
+    { session_id: "c2", title: "status?", person: "Home Assistant", via: "service", updated: "2026-10-28T03:05:00+00:00", messages: 4 }] };
+  const TRANSCRIPT = { session_id: "c1", messages: [
+    { role: "user", text: "how warm is it?", at: "2026-10-28T21:10:00+00:00", area: "Kitchen" },
+    { role: "assistant", text: "It's 72 degrees.", ok: true, model: "haiku", seconds: 4.2 }] };
+  function hassWith(fail?: Record<string, any>) {
+    const hass = fakeHass();
+    hass.callWS.mockImplementation(async (msg: any) => {
+      if (fail?.[msg.type]) throw fail[msg.type];
+      if (msg.type === "hisho/conversations/list") return structuredClone(LIST);
+      if (msg.type === "hisho/conversations/get") return TRANSCRIPT;
+      if (msg.type === "hisho/conversations/delete") return { ok: true };
+      return {};
+    });
+    return hass;
+  }
+  const settle = async (el: any) => { await new Promise((r) => setTimeout(r, 0)); await el.updateComplete; };
+
+  it("lists who, where and when in Hisho's owner time zone, and opens a transcript on a tap", async () => {
+    const { el, root, hass } = await mount("hisho-conversations-card", {}, hassWith());
+    await settle(el);
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "hisho/conversations/list", limit: 200 });
+    const rows = [...root.querySelectorAll("ul.list > li")].map((li) => li.textContent!.replace(/\s+/g, " ").trim());
+    expect(rows[0]).toContain("how warm is it?");
+    expect(rows[0]).toContain("Oct 28, 2:10 PM PDT");   // 21:10 UTC is 2:10 PM in Los Angeles
+    expect(rows[0]).toContain("Ana · Kitchen · 1 Q");
+    expect(rows[1]).toContain("Oct 27, 8:05 PM PDT");   // the evening before, there
+    expect(rows[1]).toContain("Home Assistant (automation) · 2 Q");
+    (root.querySelector("li .open") as HTMLElement).click();
+    await settle(el);
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "hisho/conversations/get", conversation_id: "c1" });
+    expect(root.querySelector(".talk")!.textContent).toContain("It's 72 degrees.");
+    expect(root.querySelector(".talk")!.textContent).toContain("haiku · 4.2 s");
+  });
+
+  it("filters by person", async () => {
+    const { el, root } = await mount("hisho-conversations-card", {}, hassWith());
+    await settle(el);
+    const select = root.querySelector("select") as HTMLSelectElement;
+    select.value = "Ana";
+    select.dispatchEvent(new Event("change"));
+    await settle(el);
+    expect(root.querySelectorAll("ul.list > li").length).toBe(1);
+  });
+
+  it("deletes only after asking", async () => {
+    const { el, root, hass } = await mount("hisho-conversations-card", {}, hassWith());
+    await settle(el);
+    const deletes = () => hass.callWS.mock.calls.filter((c: any[]) => c[0].type === "hisho/conversations/delete");
+    button(root, "Delete").click();
+    await answer(root, false);
+    expect(deletes()).toEqual([]);
+    button(root, "Delete").click();
+    await answer(root, true);
+    await settle(el);
+    expect(deletes()).toEqual([[{ type: "hisho/conversations/delete", conversation_id: "c1" }]]);
+    expect(root.querySelectorAll("ul.list > li").length).toBe(1);
+  });
+
+  it("says so when Home Assistant refuses (not an admin) and asks nothing for a non-admin", async () => {
+    const { el, root } = await mount("hisho-conversations-card", {},
+      hassWith({ "hisho/conversations/list": { code: "unauthorized", message: "Unauthorized" } }));
+    await settle(el);
+    expect(root.textContent).toContain("Only Home Assistant administrators can see these.");
+    const hass = hassWith();
+    hass.user = { id: "u", name: "Ben", is_admin: false };
+    const other = await mount("hisho-conversations-card", {}, hass);
+    expect(other.root.textContent).toContain("Hisho is for Home Assistant administrators.");
+    expect(hass.callWS).not.toHaveBeenCalled();
   });
 });

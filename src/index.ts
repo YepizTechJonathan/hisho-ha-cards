@@ -8,10 +8,11 @@ import { HishoJobsCard, HishoProjectsCard } from "./cards/lists";
 import { HishoStoreCard } from "./cards/store-card";
 import { HishoPulseCard } from "./cards/pulse-card";
 import "./cards/assistant";
+import { HishoConversationsCard } from "./cards/conversations-card";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
-export const VERSION = "0.5.0";
+export const VERSION = "0.6.0";
 
 registerIcons();
 
@@ -26,6 +27,8 @@ const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-jobs-card", HishoJobsCard, "Hisho jobs", "Hisho's jobs: cancel, retry, clear."],
   ["hisho-projects-card", HishoProjectsCard, "Hisho projects", "Active projects, what waits on you, open or archive."],
   ["hisho-store-card", HishoStoreCard, "Hisho add-on store", "Install, update, roll back or remove add-ons; repositories."],
+  ["hisho-conversations-card", HishoConversationsCard, "Hisho conversations",
+    "What people asked Hisho through Home Assistant (30 days): who, where, when; open or delete one. Admins only."],
 ];
 
 for (const [tag, cls] of CARDS) {
@@ -47,7 +50,7 @@ for (const [tag, , name, description] of CARDS) {
 w.customStrategies = w.customStrategies || [];
 if (!w.customStrategies.some((s: any) => s.type === "hisho")) {
   w.customStrategies.push({ type: "hisho", strategyType: "dashboard", name: "Hisho",
-    description: "A full Hisho dashboard: fleet, needs you, machines, devices, add-ons, projects." });
+    description: "A full Hisho dashboard: fleet, needs you, machines, devices, add-ons, projects, conversations." });
 }
 
 console.info(`%c HISHO-HA-CARDS %c ${VERSION} `, "background:#151515;color:#eee", "background:#444;color:#fff");
