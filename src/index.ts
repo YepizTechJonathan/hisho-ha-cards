@@ -13,7 +13,7 @@ import { HishoConversationsCard } from "./cards/conversations-card";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
-export const VERSION = "0.7.1";
+export const VERSION = "0.8.0";
 
 registerIcons();
 

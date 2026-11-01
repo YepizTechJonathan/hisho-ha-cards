@@ -1,6 +1,8 @@
 // hisho-conversations-card: what people asked Hisho through Home Assistant (Assist, hisho.ask), newest first:
 // who, the room, when (in Hisho's owner time zone), the first question. A tap opens the transcript; Delete asks
 // first. Hisho keeps them 30 days. Read with the hisho integration's admin-only websocket commands (1.8.0).
+// Your own conversation has a Continue box (1.10.0): answer what Hisho asked when you have it, in the same thread.
+// Someone else's is read-only: Hisho lets only the person who had a conversation continue it.
 import { html, type PropertyValues } from "lit";
 import { HishoCard } from "../base";
 import { hub } from "../model";
@@ -8,6 +10,7 @@ import { confirmDialog } from "../confirm";
 
 interface Summary {
   session_id: string;
+  person_id?: string | null;
   title?: string;
   person?: string;
   area?: string;
@@ -43,13 +46,15 @@ export function when(iso: string | undefined, timeZone?: string | null): string 
 
 export class HishoConversationsCard extends HishoCard {
   static properties = { ...HishoCard.properties, list: { state: true }, open: { state: true },
-    transcript: { state: true }, person: { state: true }, error: { state: true }, loading: { state: true } };
+    transcript: { state: true }, person: { state: true }, error: { state: true }, loading: { state: true },
+    sending: { state: true } };
   declare list: Summary[];
   declare open: string | null;
   declare transcript: { session_id: string; messages: Message[] } | null;
   declare person: string;
   declare error: string;
   declare loading: boolean;
+  declare sending: string | null;
   private timezone: string | null = null;
   private keepDays = 30;
   private loaded = false;
@@ -66,6 +71,7 @@ export class HishoConversationsCard extends HishoCard {
     this.person = "";
     this.error = "";
     this.loading = false;
+    this.sending = null;
   }
 
   protected updated(changed: PropertyValues) {
@@ -126,6 +132,45 @@ export class HishoConversationsCard extends HishoCard {
     }
   }
 
+  /** Yours to continue: you had it (Hisho checks this too). */
+  private mine(c: Summary): boolean {
+    return !!c.person_id && c.person_id === this.hass.user?.id;
+  }
+
+  private async send(c: Summary, form: HTMLFormElement) {
+    const input = form.elements.namedItem("text") as HTMLTextAreaElement;
+    const text = input.value.trim();
+    if (!text || this.sending) return;
+    this.sending = text;
+    this.error = "";
+    try {
+      await this.ws({ type: "hisho/conversations/continue", conversation_id: c.session_id, text });
+      input.value = "";
+      this.transcript = await this.ws({ type: "hisho/conversations/get", conversation_id: c.session_id });
+      this.load();
+    } catch (err: any) {
+      this.error = `Couldn't continue it: ${err?.message ?? err}`;
+    } finally {
+      this.sending = null;
+    }
+  }
+
+  private continueBox(c: Summary) {
+    if (!this.transcript) return "";
+    if (!this.mine(c)) {
+      return html`<div class="muted">Only ${c.person ?? "the person who had it"} can continue this conversation.</div>`;
+    }
+    const replies = (this.transcript.messages ?? []).filter((m) => m.role === "assistant");
+    const asked = String(replies[replies.length - 1]?.text ?? "").trim().endsWith("?");
+    return html`<form class="go-on" @submit=${(e: Event) => { e.preventDefault(); this.send(c, e.target as HTMLFormElement); }}>
+      <textarea name="text" rows="2" ?disabled=${!!this.sending} aria-label="Continue"
+        placeholder=${asked ? "Hisho asked you something: answer it here" : "Continue this conversation"}
+        @keydown=${(e: KeyboardEvent) => { if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault(); this.send(c, (e.target as HTMLTextAreaElement).form!); } }}></textarea>
+      <button class="act" type="submit" ?disabled=${!!this.sending}>${this.sending ? "Asking…" : "Continue"}</button>
+    </form>`;
+  }
+
   private source(c: { person?: string; area?: string; via?: string }): string {
     return [c.person ?? "someone", c.area].filter(Boolean).join(" · ") + (c.via === "service" ? " (automation)" : "");
   }
@@ -138,7 +183,9 @@ export class HishoConversationsCard extends HishoCard {
           <div class="text">${m.text}</div></div>`
       : html`<div class="a ${m.ok === false ? "failed" : ""}"><div class="text">${m.text || m.error || "(no answer)"}</div>
           <span class="muted">${[m.model, m.seconds !== undefined ? `${m.seconds} s` : "",
-            m.ok === false && m.error ? m.error : ""].filter(Boolean).join(" · ")}</span></div>`)}</div>`;
+            m.ok === false && m.error ? m.error : ""].filter(Boolean).join(" · ")}</span></div>`)}
+      ${this.sending ? html`<div class="q"><div class="text">${this.sending}</div></div>
+        <div class="a"><div class="text">Hisho is thinking…</div></div>` : ""}</div>`;
   }
 
   protected body() {
@@ -156,6 +203,9 @@ export class HishoConversationsCard extends HishoCard {
         select { font: inherit; font-size: 0.86em; padding: 2px 6px; border-radius: 6px; border: 1px solid var(--hisho-line);
           background: var(--hisho-glass, transparent); color: var(--primary-text-color); }
         li .open { cursor: pointer; }
+        .go-on { display: flex; gap: 8px; align-items: flex-end; margin-top: 4px; }
+        .go-on textarea { flex: 1; font: inherit; padding: 6px 9px; border-radius: var(--hisho-radius); resize: vertical;
+          border: 1px solid var(--hisho-line); background: var(--hisho-glass, transparent); color: var(--primary-text-color); }
       </style>
       <div class="head">${this.heading("Conversations")}
         <span class="row" style="flex-wrap:nowrap">
@@ -174,7 +224,7 @@ export class HishoConversationsCard extends HishoCard {
           <span class="muted num" style="flex:none">${when(c.updated, this.timezone)}</span></div>
         <div class="row spread"><span class="muted ellipsis">${this.source(c)} · ${(c.messages ?? 0) / 2 | 0} Q</span>
           <button class="act danger" @click=${() => this.forget(c)}>Delete</button></div>
-        ${this.open === c.session_id ? this.messages() : ""}
+        ${this.open === c.session_id ? html`${this.messages()}${this.continueBox(c)}` : ""}
       </li>`)}</ul>
       <div class="muted" style="margin-top:8px">Everything people asked Hisho through Home Assistant, kept
         ${this.keepDays} days${this.timezone ? html`; times in ${this.timezone.replace(/_/g, " ")}` : ""}.</div>

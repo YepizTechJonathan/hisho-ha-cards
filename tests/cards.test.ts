@@ -550,3 +550,51 @@ describe("setup card", () => {
     expect(generateDashboard(fakeHass()).views[1].sections![1].cards[0].type).toBe("custom:hisho-machine-card");
   });
 });
+
+describe("conversations card: picking one up again", () => {
+  const LIST = { timezone: "America/Los_Angeles", keep_days: 30, conversations: [
+    { session_id: "mine", title: "set up the garage code", person: "Jonathan", person_id: "me", updated: "2026-11-01T19:00:00+00:00", messages: 2 },
+    { session_id: "hers", title: "play music", person: "Ana", person_id: "ana", updated: "2026-11-01T18:00:00+00:00", messages: 2 }] };
+  let asked = [{ role: "user", text: "set up the garage code" }, { role: "assistant", text: "What's the code?", ok: true }];
+  function hassFor() {
+    const hass = fakeHass();
+    hass.user = { id: "me", name: "Jonathan", is_admin: true };
+    hass.callWS.mockImplementation(async (msg: any) => {
+      if (msg.type === "hisho/conversations/list") return structuredClone(LIST);
+      if (msg.type === "hisho/conversations/get") return { session_id: msg.conversation_id, messages: asked };
+      if (msg.type === "hisho/conversations/continue") {
+        asked = [...asked, { role: "user", text: msg.text }, { role: "assistant", text: "Saved: 4417.", ok: true }];
+        return { ok: true, reply: "Saved: 4417." };
+      }
+      return {};
+    });
+    return hass;
+  }
+  const settle = async (el: any) => { for (let i = 0; i < 3; i++) { await new Promise((r) => setTimeout(r, 0)); await el.updateComplete; } };
+
+  it("continues your own conversation in the same thread", async () => {
+    const { el, root, hass } = await mount("hisho-conversations-card", {}, hassFor());
+    await settle(el);
+    (root.querySelectorAll("li .open")[0] as HTMLElement).click();
+    await settle(el);
+    const box = root.querySelector(".go-on textarea") as HTMLTextAreaElement;
+    expect(box.placeholder).toBe("Hisho asked you something: answer it here");
+    box.value = "the code is 4417";
+    (root.querySelector(".go-on") as HTMLFormElement).dispatchEvent(new Event("submit", { cancelable: true }));
+    await settle(el);
+    expect(hass.callWS).toHaveBeenCalledWith({ type: "hisho/conversations/continue", conversation_id: "mine",
+      text: "the code is 4417" });
+    expect(root.querySelector(".talk")!.textContent).toContain("Saved: 4417.");
+    expect((root.querySelector(".go-on textarea") as HTMLTextAreaElement).value).toBe("");
+  });
+
+  it("shows someone else's conversation read-only", async () => {
+    const { el, root, hass } = await mount("hisho-conversations-card", {}, hassFor());
+    await settle(el);
+    (root.querySelectorAll("li .open")[1] as HTMLElement).click();
+    await settle(el);
+    expect(root.querySelector(".go-on")).toBeNull();
+    expect(root.textContent).toContain("Only Ana can continue this conversation.");
+    expect(hass.callWS.mock.calls.some((c: any[]) => c[0].type === "hisho/conversations/continue")).toBe(false);
+  });
+});

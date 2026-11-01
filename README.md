@@ -55,7 +55,7 @@ With [card-mod](https://github.com/thomasloven/lovelace-card-mod) installed, Hom
 | `custom:hisho-device-card` (`device: truenas`) | a box an add-on knows, or an add-on | its add-on buttons (VM start/shut down...), maintenance, add-on on/off |
 | `custom:hisho-jobs-card` | jobs | cancel, retry, clear, fail stuck jobs |
 | `custom:hisho-projects-card` | active projects, what waits on you | open, archive |
-| `custom:hisho-conversations-card` | what people asked Hisho through Home Assistant (30 days): who, room, time in Hisho's owner time zone, the first question; a tap opens the transcript | filter by person, delete (asks first) |
+| `custom:hisho-conversations-card` | what people asked Hisho through Home Assistant (30 days): who, room, time in Hisho's owner time zone, the first question; a tap opens the transcript | continue your own (a Continue box under it: answer what Hisho asked; needs the hisho integration 1.10.0), filter by person, delete (asks first); someone else's is read-only |
 
 Every card takes `title:`; the jobs, projects and conversations cards take `limit:`. Like every Hisho card,
 the conversations card is for Home Assistant administrators only (the integration refuses anyone else).
