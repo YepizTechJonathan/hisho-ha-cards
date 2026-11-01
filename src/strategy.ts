@@ -81,6 +81,10 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
       // The system lives here, not on the Overview: the fleet's pulse across the top, then each machine.
       sections({ title: "Machines", path: "machines", icon: "mdi:server" }, [
         { type: "grid", column_span: 4, cards: [{ type: "custom:hisho-pulse-card", ...FULL }] },
+        // How Hisho itself is set up (Core 2026-11-01+ / hisho 1.9.0); left out for an older integration.
+        ...(["souko_check", "backup_last_good", "approvals_waiting", "logins_not_in_vault", "trust_window"]
+          .some((k) => entityId(h, k))
+          ? [{ type: "grid" as const, column_span: 4, cards: [{ type: "custom:hisho-setup-card", ...FULL }] }] : []),
         ...machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }]),
       ]),
       // A group as wide as its devices (up to the four columns), its cards side by side inside it.

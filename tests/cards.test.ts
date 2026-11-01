@@ -476,3 +476,41 @@ describe("conversations card", () => {
     expect(hass.callWS).not.toHaveBeenCalled();
   });
 });
+
+describe("setup card", () => {
+  it("shows Check my Souko, backup, approvals, vault and the trust window, with Check now and End now", async () => {
+    const hass = fakeHass();
+    const add = (id: string, key: string, state: string, attributes: Record<string, any> = {}) => {
+      hass.states[id] = { entity_id: id, state, attributes, last_changed: "2026-11-01T00:00:00Z" };
+      hass.entities![id] = { entity_id: id, device_id: "hub", platform: "hisho", translation_key: key };
+    };
+    add("sensor.hisho_check_my_souko", "souko_check", "problems",
+      { checks: [{ name: "Logins in your password vault", ok: false }, { name: "Keyboard", ok: true }] });
+    add("button.hisho_check_my_souko", "check_souko", "unknown");
+    add("sensor.hisho_last_good_backup", "backup_last_good", new Date(Date.now() - 3 * 3600000).toISOString(), { ok: true });
+    add("sensor.hisho_approvals_waiting", "approvals_waiting", "2", { approvals: [{ title: "Reply to Randy" }, { title: "x" }] });
+    add("sensor.hisho_logins_not_in_vault", "logins_not_in_vault", "1",
+      { logins: [{ title: "Forgejo", waiting: ["vaultwarden"] }, { title: "Semaphore", waiting: [] }] });
+    add("binary_sensor.hisho_trust_window", "trust_window", "on", { until: "2026-11-01T03:30:00Z" });
+    add("button.hisho_end_trust_window", "trust_end", "unknown");
+    const { root } = await mount("hisho-setup-card", {}, hass);
+    const tiles = [...root.querySelectorAll(".lt")].map((t) => t.querySelector(".ll")!.textContent!.trim() + ": " +
+      t.querySelector(".lv")!.textContent!.trim());
+    expect(tiles).toEqual(["Check my Souko: 1 to look at", "Last good backup: 3 h ago", "Approvals waiting: 2",
+      "Logins not in the vault: 1", "Trust window: Open"]);
+    expect(root.textContent).toContain("Reply to Randy and 1 more");
+    button(root, "Check now").click();
+    button(root, "End now").click();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(hass.callService).toHaveBeenCalledWith("button", "press", {}, { entity_id: "button.hisho_check_my_souko" });
+    expect(hass.callService).toHaveBeenCalledWith("button", "press", {}, { entity_id: "button.hisho_end_trust_window" });
+    const dash = generateDashboard(hass);
+    expect(dash.views[1].sections![1].cards).toEqual([{ type: "custom:hisho-setup-card", grid_options: { columns: "full" } }]);
+  });
+
+  it("is left out for an older integration", async () => {
+    const { root } = await mount("hisho-setup-card", {});
+    expect(root.querySelector(".lt")).toBeNull();
+    expect(generateDashboard(fakeHass()).views[1].sections![1].cards[0].type).toBe("custom:hisho-machine-card");
+  });
+});
