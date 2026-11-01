@@ -1,6 +1,7 @@
 // hisho-machine-card: one machine in full: readings, services, its add-on buttons, power, maintenance.
 import { html } from "lit";
 import { HishoCard } from "../base";
+import type { HassEntity } from "../hass";
 import { allowed, available, entities, entity, entityId, findDevice, friendly } from "../model";
 import { moreInfo, press, runAction, toggle } from "../actions";
 import { pct, stateClass } from "../styles";
@@ -8,6 +9,25 @@ import { machineIcon, sparkReading } from "./fleet-card";
 import "../spark";
 import { icon, ring } from "../ui";
 import { mdiPower, mdiPowerSleep, mdiWrenchOutline } from "@mdi/js";
+
+/** A service's chip (tone, words). Home Assistant having nothing for it, or Hisho not able to ask, is
+ * grey "no data", never a red "stopped"; a job Semaphore runs reads by its last run. */
+export function serviceChip(s: HassEntity, timeZone?: string | null): [string, string] {
+  if (!available(s)) return ["off", "no data"];
+  const st: string = s.attributes.state ?? "";
+  if (st === "probe-error") return ["off", "no data"];
+  if (s.attributes.kind === "scheduled") {
+    if (s.state === "on") {
+      const ran = s.attributes.last_run ? new Date(s.attributes.last_run).toLocaleTimeString("en-US",
+        { hour: "numeric", minute: "2-digit", timeZone: timeZone || undefined }) : "";
+      return ["ok", ran ? `ok · ran ${ran}` : st === "waiting-for-first-run" ? "waiting for its first run" : "ok"];
+    }
+    if (st.startsWith("missed")) return ["bad", "missed"];
+    if (st === "not-scheduled") return ["warn", "not scheduled"];
+    return ["bad", "failed"];
+  }
+  return s.state === "on" ? ["ok", "running"] : ["bad", st || "stopped"];
+}
 
 export class HishoMachineCard extends HishoCard {
   static getStubConfig(hass: any) {
@@ -70,8 +90,11 @@ export class HishoMachineCard extends HishoCard {
       </div><div class="mright">
       ${services.length || units.length ? html`<div class="eyebrow">Services</div>` : ""}
       <ul class="list">
-        ${services.map((s) => html`<li><div class="row spread"><span>${friendly(s, m)}</span>
-          <span class="chip ${s.state === "on" ? "ok" : "bad"}">${s.state === "on" ? "running" : s.attributes.state ?? "stopped"}</span></div></li>`)}
+        ${services.map((s) => {
+          const [tone, text] = serviceChip(s, hass.config?.time_zone);
+          return html`<li><div class="row spread"><span>${friendly(s, m)}</span>
+          <span class="chip ${tone}" title=${s.attributes.state ?? ""}>${text}</span></div></li>`;
+        })}
         ${units.map((u) => {
           const label = friendly(u, m);
           const restart = restarts.find((r) => friendly(r, m) === `Restart ${label}`);

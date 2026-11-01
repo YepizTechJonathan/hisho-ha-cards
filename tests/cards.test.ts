@@ -296,6 +296,42 @@ describe("machine card", () => {
   });
 });
 
+describe("machine card services", () => {
+  const withServices = () => {
+    const hass: any = fakeHass();
+    hass.config = { time_zone: "America/Los_Angeles" };
+    const add = (id: string, state: string, attributes: Record<string, any>) => {
+      hass.states[id] = { entity_id: id, state, attributes: { friendly_name: id.split(".")[1], ...attributes },
+                          last_changed: "2026-11-01T00:00:00Z" };
+      hass.entities[id] = { entity_id: id, device_id: "ren", platform: "hisho", translation_key: "service" };
+    };
+    add("binary_sensor.ren_mirrors", "on", { kind: "scheduled", state: "success", last_run: "2026-11-01T04:10:12+00:00" });
+    add("binary_sensor.ren_backup", "off", { kind: "scheduled", state: "missed its 9:10 PM run (last ok Oct 30 9:10 PM)" });
+    add("binary_sensor.ren_copy", "off", { kind: "scheduled", state: "last run failed (Oct 31 9:10 PM)" });
+    add("binary_sensor.ren_gone", "unavailable", {});
+    add("binary_sensor.ren_asking", "off", { kind: "scheduled", state: "probe-error" });
+    add("binary_sensor.ren_core", "on", { state: "active" });
+    add("binary_sensor.ren_agent", "off", { state: "inactive" });
+    return hass;
+  };
+  const chips = (root: ShadowRoot) => Object.fromEntries([...root.querySelectorAll(".mright li")].map((li) =>
+    [li.querySelector("span")!.textContent!.trim(), li.querySelector(".chip")!] as const));
+
+  it("shows a job Semaphore runs by its last run, and no data in grey instead of a red stopped", async () => {
+    const { root } = await mount("hisho-machine-card", { machine: "Hashira Ren" }, withServices());
+    const c = chips(root);
+    const say = (k: string) => [c[k].textContent!.trim(), c[k].className.replace("chip ", "")];
+    expect(say("ren_mirrors")).toEqual(["ok · ran 9:10 PM", "ok"]);     // 04:10 UTC = 9:10 PM Pacific
+    expect(say("ren_backup")).toEqual(["missed", "bad"]);
+    expect(say("ren_copy")).toEqual(["failed", "bad"]);
+    expect(say("ren_gone")).toEqual(["no data", "off"]);
+    expect(say("ren_asking")).toEqual(["no data", "off"]);
+    expect(say("ren_core")).toEqual(["running", "ok"]);
+    expect(say("ren_agent")).toEqual(["inactive", "bad"]);
+    expect(c["ren_backup"].getAttribute("title")).toContain("last ok Oct 30");
+  });
+});
+
 describe("jobs and projects cards", () => {
   it("cancels a running job only after asking, retries a failed one", async () => {
     const { root, hass } = await mount("hisho-jobs-card", {});
