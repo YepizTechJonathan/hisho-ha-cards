@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import "../src/index";
 import { fakeHass } from "./fake-hass";
 import { hishoDevices } from "../src/model";
@@ -596,5 +596,46 @@ describe("conversations card: picking one up again", () => {
     expect(root.querySelector(".go-on")).toBeNull();
     expect(root.textContent).toContain("Only Ana can continue this conversation.");
     expect(hass.callWS.mock.calls.some((c: any[]) => c[0].type === "hisho/conversations/continue")).toBe(false);
+  });
+});
+
+describe("hisho-calendar-card", () => {
+  const withCalendar = () => {
+    const hass = fakeHass() as any;
+    const id = "calendar.hisho_my_calendar";
+    hass.states[id] = { entity_id: id, state: "off", last_changed: "2026-10-25T00:00:00Z",
+      attributes: { companies: { PatriotPoint: "#2f80ed", YepizTech: "#e5484d" }, problems: ["PatriotPoint: refused the login"] } };
+    hass.entities[id] = { entity_id: id, device_id: "hub", platform: "hisho", translation_key: "my_calendar" };
+    const day = (n: number) => new Date(Date.now() + n * 86_400_000).toLocaleDateString("en-CA");
+    hass.callApi = vi.fn().mockResolvedValue([
+      { summary: "🟥 YepizTech: Client call", description: "Company: YepizTech", location: "Zoom",
+        start: { dateTime: `${day(1)}T10:00:00` }, end: { dateTime: `${day(1)}T10:30:00` } },
+      { summary: "🟦 PatriotPoint: SAM.gov check", description: "Company: PatriotPoint\nHisho due date",
+        start: { date: day(1) }, end: { date: day(2) } },
+      { summary: "Someone's own title: with a colon", start: { date: day(3) }, end: { date: day(4) } }]);
+    return hass;
+  };
+
+  it("lists your one calendar, each event in its company's colour, with a legend and what can't be read", async () => {
+    const { root, hass } = await mount("hisho-calendar-card", {}, withCalendar());
+    await new Promise((r) => setTimeout(r, 0));
+    await (root.host as any).updateComplete;
+    expect((hass.callApi as any).mock.calls[0][1]).toMatch(/^calendars\/calendar\.hisho_my_calendar\?start=/);
+    const legend = [...root.querySelectorAll(".legend span")].map((s) => s.textContent?.trim());
+    expect(legend).toEqual(["PatriotPoint", "YepizTech"]);
+    const rows = [...root.querySelectorAll(".ev")].map((r) => ({
+      title: r.querySelector(".n")?.textContent, sub: r.querySelector(".s")?.textContent,
+      color: (r.querySelector(".bar") as HTMLElement).style.background }));
+    expect(rows[0]).toEqual({ title: "Client call", sub: "YepizTech · Zoom", color: "#e5484d" });
+    expect(rows[1]).toEqual({ title: "SAM.gov check", sub: "PatriotPoint · Hisho due date", color: "#2f80ed" });
+    expect(rows[2].title).toBe("Someone's own title: with a colon");   // not a company: the title stays whole
+    expect(root.querySelector(".warn")?.textContent).toContain("PatriotPoint: refused the login");
+  });
+
+  it("goes on the Today view in place of the due-dates month when you have a calendar", () => {
+    const views = generateDashboard(withCalendar()).views as any[];
+    const today = JSON.stringify(views.find((v) => v.path === "today"));
+    expect(today).toContain("custom:hisho-calendar-card");
+    expect(today).not.toContain('"initial_view"');
   });
 });

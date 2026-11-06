@@ -65,6 +65,7 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
   const addons = byKind(hass, "addon");
   const todayList = entityId(h, "today");
   const dueDates = entityId(h, "due_dates");
+  const myCalendar = entityId(h, "my_calendar");
   const phone = ["phone", "phone_alerts", "clear_phone", "hide_acked"].map((k) => entityId(h, k)).filter((id): id is string => !!id);
 
   const groups = new Map<string, string[]>();
@@ -98,9 +99,11 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
         ...(entityId(h, "addon_updates") ? [{ type: "grid" as const, column_span: 2, cards: [{ type: "custom:hisho-store-card", ...FULL }] }] : []),
         ...addons.map((a) => [{ type: "custom:hisho-device-card", device: a.name }]),
       ]),
-      ...(todayList || dueDates ? [sections({ title: "Today", path: "today", icon: "mdi:calendar-today" }, [
+      ...(todayList || dueDates || myCalendar ? [sections({ title: "Today", path: "today", icon: "mdi:calendar-today" }, [
         todayList ? [glass({ type: "todo-list", entity: todayList, title: "Today" })] : [],
-        dueDates ? { type: "grid" as const, column_span: 3, cards: [
+        // your calendar (every company, each in its colour) when Hisho has one; else the due dates alone
+        myCalendar ? { type: "grid" as const, column_span: 3, cards: [{ type: "custom:hisho-calendar-card", ...FULL }] }
+        : dueDates ? { type: "grid" as const, column_span: 3, cards: [
           glass({ type: "calendar", entities: [dueDates], initial_view: "dayGridMonth", title: "Due dates", ...FULL })] } : [],
       ])] : []),
       sections({ title: "Projects", path: "projects", icon: "mdi:folder-multiple" }, [

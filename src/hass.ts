@@ -39,6 +39,7 @@ export interface HomeAssistant {
   callApi?<T = any>(method: "GET" | "POST", path: string, data?: Record<string, any>): Promise<T>;
   themes?: { darkMode?: boolean };
   config?: { time_zone?: string };
+  locale?: { language?: string };
   user?: { id: string; name: string; is_admin: boolean };
 }
 

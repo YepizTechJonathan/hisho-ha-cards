@@ -10,10 +10,11 @@ import { HishoPulseCard } from "./cards/pulse-card";
 import { HishoSetupCard } from "./cards/setup-card";
 import "./cards/assistant";
 import { HishoConversationsCard } from "./cards/conversations-card";
+import { HishoCalendarCard } from "./cards/calendar-card";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
-export const VERSION = "0.8.0";
+export const VERSION = "0.9.0";
 
 registerIcons();
 
@@ -30,6 +31,8 @@ const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-jobs-card", HishoJobsCard, "Hisho jobs", "Hisho's jobs: cancel, retry, clear."],
   ["hisho-projects-card", HishoProjectsCard, "Hisho projects", "Active projects, what waits on you, open or archive."],
   ["hisho-store-card", HishoStoreCard, "Hisho add-on store", "Install, update, roll back or remove add-ons; repositories."],
+  ["hisho-calendar-card", HishoCalendarCard, "Hisho calendar",
+    "Your calendar: every company's events and Hisho's due dates in one agenda, each in its company's colour."],
   ["hisho-conversations-card", HishoConversationsCard, "Hisho conversations",
     "What people asked Hisho through Home Assistant (30 days): who, where, when; open or delete one. Admins only."],
 ];
