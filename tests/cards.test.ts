@@ -88,6 +88,38 @@ describe("the Hisho dashboard strategy", () => {
     expect(dash.views[2].sections!.map((s) => s.column_span)).toEqual([1, 1]); // as wide as their devices
   });
 
+  it("has a Kids' PCs view: each kid's PC with its readings and buttons, then the game cache", () => {
+    const hass = fakeHass() as any;
+    hass.devices.kid = { id: "kid", name: "Hashira Kocho Pat", model: "hashira-gaming", via_device_id: "hub" };
+    const add = (id: string, device: string, key: string, state: string, attrs: Record<string, any> = {}, enabled = true) => {
+      hass.entities[id] = { entity_id: id, device_id: device, platform: "hisho", translation_key: key };
+      if (enabled) hass.states[id] = { entity_id: id, state, attributes: attrs, last_changed: "2026-11-07T00:00:00Z" };
+    };
+    add("sensor.kid_state", "kid", "machine_state", "up", { machine: "hashira-kocho-pat", power: [], items: [] });
+    add("sensor.kid_time_left", "kid", "parental_time_left", "29");
+    add("sensor.kid_played", "kid", "parental_played_today", "65");
+    add("binary_sensor.kid_signed_in", "kid", "parental_signed_in", "on");
+    add("button.kid_lock", "kid", "parental_lock", "unknown");
+    add("button.kid_more", "kid", "parental_more", "unknown");
+    add("button.kid_stop", "kid", "parental_stop", "unknown");
+    add("button.kid_off", "kid", "parental_off", "unknown", {}, false);       // still disabled in HA: left out
+    add("sensor.hisho_game_cache_used", "hub", "game_cache_used", "3.6", { last_download: null });
+    add("sensor.hisho_game_cache_share", "hub", "game_cache_share_24h", "50");
+    const view = generateDashboard(hass).views.find((v) => v.path === "kids")!;
+    expect(view.title).toBe("Kids' PCs");
+    const [pc, cache] = view.sections!.map((s) => s.cards);
+    expect(pc.map((c) => c.heading ?? c.name)).toEqual(["Pat's PC", "Time left today", "Played today", "Signed in",
+      "Lock screen", "30 more minutes", "Time's up for today"]);
+    const stop = pc.find((c) => c.name === "Time's up for today")!;
+    expect(stop.tap_action).toMatchObject({ action: "perform-action", perform_action: "button.press",
+      target: { entity_id: "button.kid_stop" }, confirmation: { text: "End Pat's play for today?" } });
+    expect(pc.find((c) => c.name === "Lock screen")!.tap_action.confirmation).toBeUndefined();
+    expect(cache.map((c) => c.heading ?? c.name ?? c.type)).toEqual(["Game cache", "Used", "From the cache, last 24 h", "markdown"]);
+    expect(cache[3].content).toContain("state_attr('sensor.hisho_game_cache_used', 'last_download')");
+    // no kids' PCs and no cache: no view
+    expect(generateDashboard(fakeHass()).views.some((v) => v.path === "kids")).toBe(false);
+  });
+
   it("puts every view on the forest picture, or on a picture of your own", () => {
     const own = generateDashboard(fakeHass(), { background: "/local/lake.jpg" });
     expect(new Set(generateDashboard(fakeHass()).views.map((v) => v.background))).toEqual(new Set([viewBackground()]));
