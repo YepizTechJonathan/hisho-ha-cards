@@ -27,6 +27,26 @@ function until(hass: HomeAssistant, iso: string | undefined): string {
   return iso ? localParts(hass, new Date(iso)).time : "";
 }
 
+/** Who or what opened (or ended) a trust window, as Hisho's journal recorded it. */
+export function trustBy(by: string | null | undefined): string {
+  if (!by) return "something Hisho didn't record";
+  return ({ dashboard: "the dashboard", timer: "its timer", cli: "the command line" } as Record<string, string>)[by] ?? by;
+}
+
+/** The trust tile's words: until when and who opened it; closed, the last window and how many tools Claude ran. */
+export function trustDetail(hass: HomeAssistant, a: Record<string, any>, now = Date.now()): string {
+  const on = Object.entries((a.open_on ?? {}) as Record<string, any>);
+  if (on.length) {
+    const who = on.map(([m, w]) => `by ${trustBy(w.by)} on ${m}`).join("; ");
+    return `${a.always ? "Until you end it" : `Claude acts without asking until ${until(hass, a.until)}`}, opened ${who}`;
+  }
+  const last = (a.recent ?? [])[0];
+  if (!last || !last.started) return "Claude asks first";
+  const n = Number(last.commands_total) || 0;
+  return `Claude asks first. Last window: ${last.machine}, ${ago(last.started, now)} by ${trustBy(last.by)}, ` +
+    `${n} tool${n === 1 ? "" : "s"} run (listed on Hisho's dashboard)`;
+}
+
 export class HishoSetupCard extends HishoCard {
   static styles: CSSResultGroup = [cardStyles, css`
     ha-card { background: none; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 0; }
@@ -117,9 +137,11 @@ export class HishoSetupCard extends HishoCard {
       const open = trust.state === "on";
       const endBtn = open && entityId(h, "trust_end")
         ? html`<button class="go" @click=${(e: Event) => this.pressKey(e, "trust_end")}>End now</button>` : "";
-      tiles.push(tile(open ? "warn" : "ok", open ? "Open" : "Closed", "Trust window",
-        open ? (trust.attributes.always ? "Until you end it" : `Claude acts without asking until ${until(hass, trust.attributes.until)}`)
-          : "Claude asks first", open ? mdiShieldLockOpenOutline : mdiShieldLockOutline, trust.entity_id, endBtn));
+      const words = open && !trust.attributes.open_on   // an integration before 1.15.0: no who
+        ? (trust.attributes.always ? "Until you end it" : `Claude acts without asking until ${until(hass, trust.attributes.until)}`)
+        : trustDetail(hass, trust.attributes);
+      tiles.push(tile(open ? "warn" : "ok", open ? "Open" : "Closed", "Trust window", words,
+        open ? mdiShieldLockOpenOutline : mdiShieldLockOutline, trust.entity_id, endBtn));
     }
 
     return tiles.length ? this.frame(html`<div class="live">${tiles}</div>`) : html``;

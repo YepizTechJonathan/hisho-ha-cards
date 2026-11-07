@@ -4,6 +4,7 @@ import { fakeHass } from "./fake-hass";
 import { hishoDevices } from "../src/model";
 import { generateDashboard } from "../src/strategy";
 import { HA_CARD_GLASS, viewBackground } from "../src/styles";
+import { trustBy, trustDetail } from "../src/cards/setup-card";
 
 async function mount(tag: string, config: Record<string, any>, hass = fakeHass()) {
   const el = document.createElement(tag) as any;
@@ -527,7 +528,8 @@ describe("setup card", () => {
     add("sensor.hisho_approvals_waiting", "approvals_waiting", "2", { approvals: [{ title: "Reply to Randy" }, { title: "x" }] });
     add("sensor.hisho_logins_not_in_vault", "logins_not_in_vault", "1",
       { logins: [{ title: "Forgejo", waiting: ["vaultwarden"] }, { title: "Semaphore", waiting: [] }] });
-    add("binary_sensor.hisho_trust_window", "trust_window", "on", { until: "2026-11-01T03:30:00Z" });
+    add("binary_sensor.hisho_trust_window", "trust_window", "on", { until: "2026-11-01T03:30:00Z",
+      open_on: { souko: { until: "2026-11-01T03:30:00Z", by: "Home Assistant user Jonathan" } } });
     add("button.hisho_end_trust_window", "trust_end", "unknown");
     const { root } = await mount("hisho-setup-card", {}, hass);
     const tiles = [...root.querySelectorAll(".lt")].map((t) => t.querySelector(".ll")!.textContent!.trim() + ": " +
@@ -535,6 +537,7 @@ describe("setup card", () => {
     expect(tiles).toEqual(["Check my Souko: 1 to look at", "Last good backup: 3 h ago", "Approvals waiting: 2",
       "Logins not in the vault: 1", "Trust window: Open"]);
     expect(root.textContent).toContain("Reply to Randy and 1 more");
+    expect(root.textContent).toContain("opened by Home Assistant user Jonathan on souko");      // who turned it on
     button(root, "Check now").click();
     button(root, "End now").click();
     await new Promise((r) => setTimeout(r, 0));
@@ -542,6 +545,15 @@ describe("setup card", () => {
     expect(hass.callService).toHaveBeenCalledWith("button", "press", {}, { entity_id: "button.hisho_end_trust_window" });
     const dash = generateDashboard(hass);
     expect(dash.views[1].sections![1].cards).toEqual([{ type: "custom:hisho-setup-card", grid_options: { columns: "full" } }]);
+  });
+
+  it("says the last window when closed: where, who opened it, how many tools Claude ran", () => {
+    const hass = fakeHass();
+    const started = new Date(Date.now() - 2 * 3600000).toISOString();
+    expect(trustDetail(hass, { recent: [{ machine: "Souko", by: "dashboard", started, commands_total: 4 }] }))
+      .toBe("Claude asks first. Last window: Souko, 2 h ago by the dashboard, 4 tools run (listed on Hisho's dashboard)");
+    expect(trustDetail(hass, { recent: [] })).toBe("Claude asks first");
+    expect(trustBy(undefined)).toBe("something Hisho didn't record");
   });
 
   it("is left out for an older integration", async () => {
