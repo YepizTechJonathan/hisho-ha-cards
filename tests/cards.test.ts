@@ -683,3 +683,40 @@ describe("hisho-calendar-card", () => {
     expect(today).not.toContain('"initial_view"');
   });
 });
+
+describe("add-on cards", () => {
+  const withCard = () => {
+    const hass = fakeHass();
+    (hass.devices.hub as any).configuration_url = "https://hisho.example.ts.net/";
+    hass.states["sensor.web_factory_status"].attributes.card = { title: "Gov bids", rows: [
+      { label: "Open matches", value: "25", detail: "0 strong · 3 new", state: "ok", indent: false, url: "#/addons/gov-bids" },
+      { label: "Best match", value: "68", detail: "VA tools · due Tue Nov 17", state: "", indent: true,
+        url: "https://sam.gov/opp/a/view" },
+      { label: "Quiet", value: "1", detail: "", state: "warn", indent: false, url: "javascript:alert(1)" }] };
+    return hass;
+  };
+
+  it("shows an add-on's own card, its rows linking to Hisho's pages or the outside page", async () => {
+    const { root } = await mount("hisho-addon-card", { addon: "web-factory" }, withCard());
+    expect(root.querySelector(".title")!.textContent).toBe("Gov bids");
+    const rows = [...root.querySelectorAll(".arow")];
+    expect(rows.map((r) => r.querySelector(".avalue")!.textContent)).toEqual(["25", "68", "1"]);
+    expect(rows[0].querySelector("a")!.getAttribute("href")).toBe("https://hisho.example.ts.net/#/addons/gov-bids");
+    expect(rows[1].querySelector("a")!.getAttribute("href")).toBe("https://sam.gov/opp/a/view");
+    expect(rows[1].classList.contains("indent")).toBe(true);
+    expect(rows[2].querySelector("a")).toBeNull();   // not http(s) or a Hisho page: no link
+    expect(rows[2].querySelector(".dot")!.classList.contains("warn")).toBe(true);
+  });
+
+  it("finds the add-on by its title too, and says when it has no card", async () => {
+    expect((await mount("hisho-addon-card", { addon: "Web Factory" }, withCard())).root.textContent).toContain("Open matches");
+    expect((await mount("hisho-addon-card", { addon: "web-factory" })).root.textContent).toContain("has no overview card");
+    expect((await mount("hisho-addon-card", { addon: "nope" })).root.textContent).toContain("No Hisho add-on named nope");
+  });
+
+  it("puts every add-on's card on the control center, and none when no add-on has one", async () => {
+    const { root } = await mount("hisho-control-center-card", {}, withCard());
+    expect(root.querySelector(".addoncards .title")!.textContent).toBe("Gov bids");
+    expect((await mount("hisho-control-center-card", {})).root.querySelector(".addoncards")).toBeNull();
+  });
+});

@@ -11,10 +11,11 @@ import { HishoSetupCard } from "./cards/setup-card";
 import "./cards/assistant";
 import { HishoConversationsCard } from "./cards/conversations-card";
 import { HishoCalendarCard } from "./cards/calendar-card";
+import { HishoAddonCard } from "./cards/addon-card";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
-export const VERSION = "0.11.0";
+export const VERSION = "0.12.0";
 
 registerIcons();
 
@@ -28,6 +29,8 @@ const CARDS: [string, CustomElementConstructor, string, string][] = [
   ["hisho-machine-card", HishoMachineCard, "Hisho machine", "One machine in full: readings, services, its add-on buttons."],
   ["hisho-needs-you-card", HishoNeedsYouCard, "Hisho needs you", "Hisho's needs-you list: acknowledge, snooze, investigate."],
   ["hisho-device-card", HishoDeviceCard, "Hisho device", "A box an add-on knows (TrueNAS, a Proxmox host...) or an add-on."],
+  ["hisho-addon-card", HishoAddonCard, "Hisho add-on card",
+    "An add-on's own overview card (Gov bids, Invoicing's Money): its rows, each linking to its page."],
   ["hisho-jobs-card", HishoJobsCard, "Hisho jobs", "Hisho's jobs: cancel, retry, clear."],
   ["hisho-projects-card", HishoProjectsCard, "Hisho projects", "Active projects, what waits on you, open or archive."],
   ["hisho-store-card", HishoStoreCard, "Hisho add-on store", "Install, update, roll back or remove add-ons; repositories."],

@@ -53,6 +53,7 @@ With [card-mod](https://github.com/thomasloven/lovelace-card-mod) installed, Hom
 | `custom:hisho-machine-card` (`machine: Souko`) | one machine in full: readings, services, add-on items | wake/park, start/stop/restart services, add-on buttons, maintenance |
 | `custom:hisho-needs-you-card` | Hisho's needs-you list with Claude's findings | acknowledge, snooze, investigate, send to phone |
 | `custom:hisho-device-card` (`device: truenas`) | a box an add-on knows, or an add-on | its add-on buttons (VM start/shut down...), maintenance, add-on on/off |
+| `custom:hisho-addon-card` (`addon: gov-bids`) | an add-on's own overview card (Gov bids, Invoicing's Money), as on Hisho's dashboard; the Control Center shows every add-on's card (needs the hisho integration 1.19.0) | each row opens its page: Hisho's, or the outside one (SAM.gov) |
 | `custom:hisho-jobs-card` | jobs | cancel, retry, clear, fail stuck jobs |
 | `custom:hisho-projects-card` | active projects, what waits on you | open, archive |
 | `custom:hisho-conversations-card` | what people asked Hisho through Home Assistant (30 days): who, room, time in Hisho's owner time zone, the first question; a tap opens the transcript | continue your own (a Continue box under it: answer what Hisho asked; needs the hisho integration 1.10.0), filter by person, delete (asks first); someone else's is read-only |

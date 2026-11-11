@@ -4,6 +4,7 @@
 //   your day (Today's to-dos, what's coming due)   | needs your decision, projects waiting on you
 //   what Hisho is working on, what it did for you  |   (on a phone: decisions first)
 //   the system as one line: machines, sync, fleet maintenance, a link to the Machines page
+//   the add-ons' own cards (Invoicing's Money, Gov bids), side by side
 import { css, html, type CSSResultGroup, type TemplateResult } from "lit";
 import {
   mdiArrowRight, mdiCheck, mdiClose, mdiCoffeeOutline, mdiFolderAccountOutline, mdiShieldAlertOutline, mdiShieldCheckOutline,
@@ -15,13 +16,14 @@ import { toggle } from "../actions";
 import { cardStyles, stateClass } from "../styles";
 import { greeting, icon, localParts, navigate } from "../ui";
 import { doneForYou, waitingOnYou, workingOn } from "./assistant";
+import { addonCardBody, addonCardStyles, addonsWithCards } from "./addon-card";
 
 export class HishoControlCenterCard extends HishoCard {
   static properties = { ...HishoCard.properties, selected: { state: true } };
   declare selected?: string;
   private clock?: number;
 
-  static styles: CSSResultGroup = [cardStyles, css`
+  static styles: CSSResultGroup = [cardStyles, addonCardStyles, css`
     ha-card {
       background: none; border: none; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none;
       padding: clamp(14px, 3vw, 36px) clamp(12px, 3vw, 40px) 32px; max-width: 1680px; margin: 0 auto;
@@ -42,6 +44,7 @@ export class HishoControlCenterCard extends HishoCard {
     .body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; }
     .col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
     .panel { padding: 16px 18px 18px; min-width: 0; }
+    .addoncards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-top: 18px; }
     ul.dones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
     ul.dones li { display: flex; align-items: center; gap: 9px; padding: 5px 0; font-size: 0.92em; }
     ul.dones li > svg { width: 16px; height: 16px; fill: var(--hisho-accent-text); flex: none; }
@@ -138,6 +141,7 @@ export class HishoControlCenterCard extends HishoCard {
     const done = doneForYou(hass);
     const projectsWaiting = waitingOnYou(hass);
     const todayOpen = Number(entity(hass, h, "today")?.state) || 0;
+    const cards = addonsWithCards(hass);   // the add-ons' own cards (Invoicing's Money, Gov bids), as on Hisho's dashboard
     return this.frame(html`
       <div class="hero">
         <div class="hello">
@@ -178,7 +182,8 @@ export class HishoControlCenterCard extends HishoCard {
           </section>
         </div>
       </div>
-
+      ${cards.length ? html`<div class="addoncards">${cards.map(([d, c]) =>
+        html`<section class="panel glass">${addonCardBody(hass, d, c)}</section>`)}</div>` : ""}
     `);
   }
 
