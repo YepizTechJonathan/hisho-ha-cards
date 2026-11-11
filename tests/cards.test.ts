@@ -88,6 +88,15 @@ describe("the Hisho dashboard strategy", () => {
     expect(dash.views[2].sections!.map((s) => s.column_span)).toEqual([1, 1]); // as wide as their devices
   });
 
+  it("says so when Hisho reports no devices, instead of a view that is only the background", () => {
+    const hass = fakeHass() as any;
+    hass.entities = Object.fromEntries(Object.entries(hass.entities).filter(([, e]: any) => !e.translation_key.startsWith("box_")));
+    const view = generateDashboard(hass).views.find((v) => v.path === "devices")!;
+    expect(view.sections!.length).toBe(1);
+    expect(view.sections![0].cards[0]).toMatchObject({ type: "markdown" });
+    expect(view.sections![0].cards[0].content).toContain("No devices from Hisho right now");
+  });
+
   it("has a Kids' PCs view: each kid's PC with its readings and buttons, then the game cache", () => {
     const hass = fakeHass() as any;
     hass.devices.kid = { id: "kid", name: "Hashira Kocho Pat", model: "hashira-gaming", via_device_id: "hub" };

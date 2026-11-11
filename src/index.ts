@@ -15,7 +15,7 @@ import { HishoAddonCard } from "./cards/addon-card";
 import { HishoDashboardStrategy } from "./strategy";
 import { registerIcons } from "./icons";
 
-export const VERSION = "0.12.0";
+export const VERSION = "0.12.1";
 
 registerIcons();
 

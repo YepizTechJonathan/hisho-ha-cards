@@ -87,6 +87,10 @@ function gameCache(h: HishoDevice): Section | undefined {
   ] };
 }
 
+const NO_DEVICES = "**No devices from Hisho right now.** Hisho's add-ons (Proxmox, TrueNAS, UniFi...) report the " +
+  "servers, VMs, storage and network gear shown here. If Hisho's own dashboard lists them, reload the Hisho " +
+  "integration (Settings › Devices & services › Hisho › ⋮ › Reload).";
+
 const KIND_ORDER = ["Server", "Vm", "Storage", "Device", "Network"];
 const KIND_TITLE: Record<string, string> = {
   Server: "Servers", Vm: "Virtual machines", Storage: "Storage", Device: "Devices", Network: "Network",
@@ -133,13 +137,15 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
           ? [{ type: "grid" as const, column_span: 4, cards: [{ type: "custom:hisho-setup-card", ...FULL }] }] : []),
         ...machines.map((m) => [{ type: "custom:hisho-machine-card", machine: m.name }]),
       ]),
-      // A group as wide as its devices (up to the four columns), its cards side by side inside it.
-      sections({ title: "Devices", path: "devices", icon: "mdi:devices" },
-        KIND_ORDER.filter((k) => groups.has(k)).map((k) => ({
+      // A group as wide as its devices (up to the four columns), its cards side by side inside it. With none, a
+      // card that says so: an empty sections view is only the background, which looks like a page that failed.
+      sections({ title: "Devices", path: "devices", icon: "mdi:devices" }, groups.size
+        ? KIND_ORDER.filter((k) => groups.has(k)).map((k) => ({
           type: "grid" as const, column_span: Math.min(4, groups.get(k)!.length), cards: [
             { type: "heading", heading: KIND_TITLE[k] },
             ...groups.get(k)!.map((name) => ({ type: "custom:hisho-device-card", device: name })),
-          ] }))),
+          ] }))
+        : [{ type: "grid", column_span: 2, cards: [glass({ type: "markdown", ...FULL, content: NO_DEVICES })] }]),
       sections({ title: "Add-ons", path: "addons", icon: "mdi:puzzle" }, [
         ...(entityId(h, "addon_updates") ? [{ type: "grid" as const, column_span: 2, cards: [{ type: "custom:hisho-store-card", ...FULL }] }] : []),
         ...addons.map((a) => [{ type: "custom:hisho-device-card", device: a.name }]),
