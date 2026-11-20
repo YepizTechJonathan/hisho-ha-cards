@@ -53,9 +53,9 @@ export class HishoSetupCard extends HishoCard {
     .live { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
     .lt { position: relative; padding: 16px 18px; cursor: pointer; display: flex; flex-direction: column; gap: 4px;
       min-height: 112px; transition: transform 0.15s, border-color 0.15s;
-      background: var(--hisho-glass); border: 1px solid var(--hisho-edge); border-radius: var(--hisho-radius-lg);
-      backdrop-filter: blur(20px) saturate(130%); -webkit-backdrop-filter: blur(20px) saturate(130%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+      background: var(--hisho-glass); border: none; border-top: 1px solid var(--hisho-line); border-radius: 0;
+      backdrop-filter: none;
+      box-shadow: none; }
     .lt:hover { transform: translateY(-1px); border-color: rgba(255, 255, 255, 0.16); }
     .lt .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
     .lt .lv { font-size: 1.7em; font-weight: 300; line-height: 1.1; }

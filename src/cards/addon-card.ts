@@ -64,7 +64,8 @@ export const addonCardStyles = css`
   .acol { display: flex; flex-direction: column; min-width: 0; flex: 1; }
   .alabel a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
   .acol .muted { font-size: 0.82em; overflow-wrap: anywhere; }
-  .avalue { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .avalue { font-family: var(--hisho-serif, Georgia, serif); font-size: 1.45em; font-weight: 600; line-height: 1.1;
+    font-variant-numeric: tabular-nums; white-space: nowrap; }
 `;
 
 export class HishoAddonCard extends HishoCard {

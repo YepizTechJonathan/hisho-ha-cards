@@ -29,9 +29,9 @@ export class HishoControlCenterCard extends HishoCard {
       padding: clamp(14px, 3vw, 36px) clamp(12px, 3vw, 40px) 32px; max-width: 1680px; margin: 0 auto;
     }
     .glass {
-      background: var(--hisho-glass); border: 1px solid var(--hisho-edge); border-radius: var(--hisho-radius-lg);
-      backdrop-filter: blur(20px) saturate(130%); -webkit-backdrop-filter: blur(20px) saturate(130%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      background: var(--hisho-glass); border: none; border-top: 1px solid var(--hisho-line); border-radius: 0;
+      backdrop-filter: none;
+      box-shadow: none;
     }
 
     .hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(320px, 1fr); align-items: end; gap: 24px; margin: 4px 0 22px; }

@@ -1,10 +1,10 @@
 // hisho-fleet-card: every machine at a glance, with wake / park and maintenance. Its tile is also the Control
 // Center's: the machine in a coloured circle, its readings as rings, power buttons, and its last day as a sparkline.
-import { html, type TemplateResult } from "lit";
+import { css, html, type CSSResultGroup, type TemplateResult } from "lit";
 import { HishoCard } from "../base";
 import { allowed, available, byKind, entities, entity, entityId, hub, type HishoDevice } from "../model";
 import { moreInfo, runAction, toggle } from "../actions";
-import { pct, stateClass } from "../styles";
+import { cardStyles, pct, stateClass } from "../styles";
 import type { HomeAssistant } from "../hass";
 import { icon, ring } from "../ui";
 import "../spark";
@@ -105,9 +105,42 @@ export function fleetMaintSwitch(card: HishoCard, id: string): TemplateResult {
       }} />Fleet maintenance</label>`;
 }
 
+/** A machine's name as the brief writes it: "Hashira Tokito" is Tokito, "Hashira Kocho Oli" is Oli. */
+export function shortName(name: string): string {
+  return name.replace(/^Hashira (Kocho )?/, "");
+}
+
+/** What a rack row says after the name: why it's off, its parking, else its role. */
+function rackNote(hass: HomeAssistant, m: HishoDevice): string {
+  const state = entity(hass, m, "machine_state");
+  const parking = entity(hass, m, "awake");
+  const isOn = entity(hass, m, "online")?.state === "on";
+  if (!isOn) return available(parking) ? parking.state : String(state?.attributes.reason ?? state?.state ?? "off");
+  const mem = pct(entity(hass, m, "memory_usage")?.state);
+  const role = available(parking) ? parking.state : state?.attributes.role ?? m.model ?? "";
+  return [role, mem !== undefined ? `${Math.round(mem)}% memory` : ""].filter(Boolean).join(" · ");
+}
+
 export class HishoFleetCard extends HishoCard implements TileHost {
   static properties = { ...HishoCard.properties, expanded: { state: true } };
   declare expanded: Set<string>;
+  static styles: CSSResultGroup = [cardStyles, css`
+    .group { font-family: var(--hisho-serif); font-size: 1.05em; color: var(--hisho-text-2); margin: 14px 0 4px; }
+    .group:first-of-type { margin-top: 2px; }
+    .rack { display: grid; grid-template-columns: 14px minmax(110px, auto) 1fr; column-gap: 10px; align-items: baseline;
+      padding: 6px 0; cursor: pointer; }
+    .rack .dot { width: 9px; height: 9px; align-self: center; }
+    .rack .dot.ok { background: var(--hisho-ok); } .rack .dot.bad { background: var(--hisho-crit); }
+    .rack .dot.warn, .rack .dot.brown { background: var(--hisho-warn); }
+    .rack .n { font-family: var(--hisho-mono); font-size: 1em; white-space: nowrap; }
+    .rack.asleep .n { color: var(--hisho-text-2); }
+    .rack .s { font-size: 0.92em; color: var(--hisho-text-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rack .s.bad { color: var(--hisho-crit); }
+    .open { padding: 2px 0 10px 24px; }
+    .open .kv { max-width: 360px; margin-bottom: 4px; }
+    .lights { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px 16px; }
+    .lights .rack { grid-template-columns: 14px 1fr; }
+  `];
 
   static getStubConfig() {
     return { type: "custom:hisho-fleet-card" };
@@ -125,21 +158,75 @@ export class HishoFleetCard extends HishoCard implements TileHost {
   }
 
   protected body() {
-    const machines = byKind(this.hass, "machine");
-    const h = hub(this.hass);
-    const online = entity(this.hass, h, "machines_online");
+    const hass = this.hass;
+    const machines = byKind(hass, "machine");
+    const h = hub(hass);
+    const online = entity(hass, h, "machines_online");
     const fleetMaint = entityId(h, "fleet_maintenance");
-    const reachable = entity(this.hass, h, "core_reachable");
+    const reachable = entity(hass, h, "core_reachable");
+    // The rack: machines grouped by their Home Assistant area (garage rack, office...), the running ones first.
+    const groups = new Map<string, HishoDevice[]>();
+    for (const m of machines) {
+      const area = hass.devices?.[m.id]?.area_id;
+      const name = (area && hass.areas?.[area]?.name) || "Machines";
+      groups.set(name, [...(groups.get(name) ?? []), m]);
+    }
+    const isOn = (m: HishoDevice) => entity(hass, m, "online")?.state === "on";
+    const lights = this.config.look === "lights";
     return this.frame(html`
       <div class="head">
-        ${this.heading("Fleet")}
+        ${this.heading("Machines")}
         <div class="row">
           ${reachable?.state === "off" ? html`<span class="chip bad">Hisho Core unreachable</span>` : ""}
-          ${online ? html`<span class="chip num">${online.state} of ${machines.length} online</span>` : ""}
-          ${fleetMaint ? fleetMaintSwitch(this, fleetMaint) : ""}
+          ${online && !lights ? html`<span class="muted num">${online.state} of ${machines.length} up</span>` : ""}
         </div>
       </div>
-      <div class="grid">${machines.map((m) => machineTile(this, m))}</div>
+      ${lights ? html`<div class="lights">${[...machines].sort((a, b) => Number(isOn(b)) - Number(isOn(a)))
+        .map((m) => this.row(m, false))}</div>`
+      : [...groups].map(([name, list]) => html`${groups.size > 1 ? html`<div class="group">${name}</div>` : ""}
+        ${[...list].sort((a, b) => Number(isOn(b)) - Number(isOn(a))).map((m) => this.row(m, true))}`)}
+      ${fleetMaint && !lights ? html`<div style="margin-top:10px">${fleetMaintSwitch(this, fleetMaint)}</div>` : ""}
     `);
+  }
+
+  /** One machine as a rack row: its light, its name, what it's doing. A tap opens its readings and power links. */
+  private row(m: HishoDevice, note: boolean): TemplateResult {
+    const hass = this.hass;
+    const state = entity(hass, m, "machine_state");
+    const maint = entityId(m, "maintenance");
+    const inMaint = maint ? hass.states[maint]?.state === "on" : false;
+    const on = entity(hass, m, "online")?.state === "on";
+    const tone = inMaint ? "warn" : on ? stateClass(state?.state) : stateClass(state?.state) === "bad" ? "bad" : "off";
+    const open = this.expanded.has(m.id);
+    return html`<div class="rack ${on ? "" : "asleep"}" @click=${() => this.flip(m.id)}>
+        <span class="dot ${tone}"></span><span class="n">${shortName(m.name)}</span>
+        ${note ? html`<span class="s ${tone === "bad" ? "bad" : ""}">${inMaint ? "maintenance" : rackNote(hass, m)}</span>` : ""}
+      </div>
+      ${open ? html`<div class="open">${this.details(m)}</div>` : ""}`;
+  }
+
+  /** The open row: its readings and its power and maintenance links (the same actions as the machine tile). */
+  private details(m: HishoDevice): TemplateResult {
+    const hass = this.hass;
+    const state = entity(hass, m, "machine_state");
+    const power: string[] = state?.attributes.power ?? [];
+    const can = allowed(hass);
+    const target: string = state?.attributes.machine ?? m.name;
+    const maint = entityId(m, "maintenance");
+    const inMaint = maint ? hass.states[maint]?.state === "on" : false;
+    const readings = [["Memory", "memory_usage"], ["Disk", "disk_usage"], ["GPU", "gpu_usage"]]
+      .map(([label, key]) => [label, pct(entity(hass, m, key)?.state)] as const)
+      .filter((r): r is readonly [string, number] => r[1] !== undefined);
+    return html`${readings.length ? html`<div class="kv">${readings.map(([l, v]) => html`<span>${l}</span><span>${Math.round(v)}%</span>`)}</div>` : ""}
+      <div class="row">
+        ${power.includes("wake") && can.has("machine.wake")
+          ? html`<button class="act primary" @click=${() => runAction(this, hass, "machine.wake", target)}>Wake</button>` : ""}
+        ${power.includes("park") && can.has("machine.park")
+          ? html`<button class="act" @click=${() => runAction(this, hass, "machine.park", target, {},
+              `Park ${m.name}? It powers off until something needs it.`)}>Park</button>` : ""}
+        ${maint ? html`<button class="act" @click=${() => toggle(this, hass, maint, !inMaint, inMaint ? undefined
+            : `Put ${m.name} in maintenance? Its alerts are held and its VM shuts down.`)}>${inMaint ? "End maintenance" : "Maintenance"}</button>` : ""}
+        ${state ? html`<button class="act" @click=${() => moreInfo(this, state.entity_id)}>History</button>` : ""}
+      </div>`;
   }
 }

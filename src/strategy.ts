@@ -12,6 +12,9 @@ interface Section {
 
 interface View {
   title: string;
+  theme?: string;
+  header?: Record<string, unknown>;
+  badges?: LovelaceCardConfig[];
   path: string;
   icon: string;
   type?: string;
@@ -21,6 +24,9 @@ interface View {
   dense_section_placement?: boolean;
   background?: string;
 }
+
+/** The theme the hisho integration adds to Home Assistant. */
+const THEME = "Hisho";
 
 export interface StrategyConfig {
   /** The dashboard's picture: a URL ("/local/my-photo.jpg"), or "" for none (just the colours). */
@@ -87,6 +93,42 @@ function gameCache(h: HishoDevice): Section | undefined {
   ] };
 }
 
+/** The Overview's header, as Hisho's own Home: the day and time, the greeting, one sentence on what needs you.
+ *  A Markdown card (HA renders the template on the server), its type set by the Hisho theme or card-mod. */
+function greetingMarkdown(needs: string | undefined, approvals: string | undefined): LovelaceCardConfig {
+  const n = needs ? `states('${needs}')|int(0)` : "0";
+  const a = approvals ? `states('${approvals}')|int(0)` : "0";
+  const content =
+    "{% set h = now().hour %}{% set n = " + n + " %}{% set a = " + a + " %}" +
+    "{% set w = ['Nothing', 'One thing', 'Two things', 'Three things', 'Four things', 'Five things', 'Six things', " +
+    "'Seven things', 'Eight things', 'Nine things'] %}" +
+    "<p class=\"when\">{{ now().strftime('%A %-d %B · %-I:%M %p') }}</p>\n\n" +
+    "# Good {{ 'morning' if 5 <= h < 12 else 'afternoon' if 12 <= h < 18 else 'evening' if 18 <= h < 22 else 'night' }}" +
+    "{{ ', ' ~ user.split(' ')[0] if user else '' }}.\n\n" +
+    "<p class=\"sum\">{% if n == 0 %}Nothing needs you. Everything is handled." +
+    "{% else %}{{ w[n] if n < 10 else n ~ ' things' }} need{{ 's' if n == 1 else '' }} you" +
+    "{{ ', one is an approval' if a == 1 else (', ' ~ a ~ ' are approvals') if a > 1 else '' }}. " +
+    "Everything else is handled.{% endif %}</p>";
+  return {
+    type: "markdown", text_only: true, content,
+    card_mod: { style: { ".": "ha-card { background: none; border: none !important; padding: 0; }",
+      "ha-markdown$": ".when { margin: 0 0 6px; color: #8C857B; font-family: 'Inter Tight', system-ui, sans-serif; } " +
+        "h1 { margin: 0 0 6px; font-family: 'Shippori Mincho', Georgia, serif; font-weight: 600; font-size: clamp(2em, 4.4vw, 3.1em); " +
+        "line-height: 1.1; color: #ECE6DC; letter-spacing: 0; } " +
+        ".sum { margin: 0; font-family: 'Shippori Mincho', Georgia, serif; font-size: clamp(1.15em, 2vw, 1.4em); color: #8C857B; }" } },
+  };
+}
+
+/** The status counts line under the greeting, as HA badges: plain words, no icons; a tap opens the entity. */
+function statusBadges(h: HishoDevice): LovelaceCardConfig[] {
+  const badge = (key: string, name: string): LovelaceCardConfig[] => {
+    const entity = entityId(h, key);
+    return entity ? [{ type: "entity", entity, name, show_name: true, show_state: true, show_icon: false, state_content: "state" }] : [];
+  };
+  return [...badge("machines_online", "machines up"), ...badge("needs_you_count", "need you"),
+    ...badge("approvals_waiting", "approvals"), ...badge("jobs_active", "jobs"), ...badge("sync_conflicts", "sync conflicts")];
+}
+
 const NO_DEVICES = "**No devices from Hisho right now.** Hisho's add-ons (Proxmox, TrueNAS, UniFi...) report the " +
   "servers, VMs, storage and network gear shown here. If Hisho's own dashboard lists them, reload the Hisho " +
   "integration (Settings › Devices & services › Hisho › ⋮ › Reload).";
@@ -124,10 +166,26 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
   const kids = machines.filter((m) => entityId(m, "parental_time_left"));
   const cache = gameCache(h);
   const background = viewBackground(config.background);
+  const invoicing = addons.find((a) => /invoic/i.test(a.name) || /invoic/i.test(String(hass.states[entityId(a, "addon_status") ?? ""]?.attributes.addon ?? "")));
   const views: View[] = [
-      // The Control Center fills the screen: a panel view is one card, full width.
-      { title: "Overview", path: "overview", icon: "mdi:view-dashboard", type: "panel",
-        cards: [{ type: "custom:hisho-control-center-card" }] },
+      // Hisho's Home as Home Assistant builds it: the greeting and the status counts in the view's header, then
+      // the brief (what needs you, today, Ask Hisho) beside the ledger (machines, load, money). A phone stacks them.
+      { title: "Overview", path: "overview", icon: "mdi:view-dashboard", type: "sections", max_columns: 3,
+        header: { layout: "start", badges_position: "bottom", badges_wrap: "wrap",
+          card: greetingMarkdown(entityId(h, "needs_you_count"), entityId(h, "approvals_waiting")) },
+        badges: statusBadges(h),
+        sections: [
+          { type: "grid", column_span: 2, cards: [
+            { type: "custom:hisho-needs-you-card", title: "Needs you", limit: 5, ...FULL },
+            ...(todayList ? [glass({ type: "todo-list", entity: todayList, title: "Today", hide_completed: true, ...FULL })] : []),
+            { type: "custom:hisho-ask-card", ...FULL },
+          ] },
+          { type: "grid", cards: [
+            { type: "custom:hisho-fleet-card", ...FULL },
+            { type: "custom:hisho-load-card", ...FULL },
+            ...(invoicing ? [{ type: "custom:hisho-addon-card", addon: invoicing.name, ...FULL }] : []),
+          ] },
+        ] },
       // The system lives here, not on the Overview: the fleet's pulse across the top, then each machine.
       sections({ title: "Machines", path: "machines", icon: "mdi:server" }, [
         { type: "grid", column_span: 4, cards: [{ type: "custom:hisho-pulse-card", ...FULL }] },
@@ -174,8 +232,9 @@ export function generateDashboard(hass: HomeAssistant, config: StrategyConfig = 
           "`notify.send_message` on the **Hisho Phone app** entity." }),
       ]]),
   ];
-  // Every view on the same picture, so moving between them feels like one place.
-  return { title: "Hisho", views: views.map((v) => ({ ...v, background })) };
+  // Every view on the same warm black, in the Hisho theme when Home Assistant has it (the hisho integration adds it).
+  const theme = hass.themes?.themes?.[THEME] ? THEME : undefined;
+  return { title: "Hisho", views: views.map((v) => ({ ...v, background, ...(theme ? { theme } : {}) })) };
 }
 
 export class HishoDashboardStrategy extends HTMLElement {

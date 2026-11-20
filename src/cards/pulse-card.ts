@@ -3,9 +3,10 @@
 import { css, html, type CSSResultGroup } from "lit";
 import { mdiBellRingOutline, mdiCheckDecagramOutline, mdiCogSyncOutline, mdiFileAlertOutline, mdiServerNetwork } from "@mdi/js";
 import { HishoCard } from "../base";
-import { available, byKind, entity, entityId, hub } from "../model";
+import { available, byKind, entity, entityId, hub, type HishoDevice } from "../model";
 import { moreInfo } from "../actions";
-import { cardStyles } from "../styles";
+import { cardStyles, pct } from "../styles";
+import { shortName } from "./fleet-card";
 import { icon } from "../ui";
 import "../spark";
 
@@ -15,12 +16,12 @@ export class HishoPulseCard extends HishoCard {
     .live { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
     .lt { position: relative; overflow: hidden; padding: 16px 18px 0; cursor: pointer; display: flex; flex-direction: column;
       min-height: 132px; transition: transform 0.15s, border-color 0.15s;
-      background: var(--hisho-glass); border: 1px solid var(--hisho-edge); border-radius: var(--hisho-radius-lg);
-      backdrop-filter: blur(20px) saturate(130%); -webkit-backdrop-filter: blur(20px) saturate(130%);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+      background: var(--hisho-glass); border: none; border-top: 1px solid var(--hisho-line); border-radius: 0;
+      backdrop-filter: none;
+      box-shadow: none; }
     .lt:hover { transform: translateY(-1px); border-color: rgba(255, 255, 255, 0.16); }
     .lt .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-    .lt .lv { font-size: 2.6em; font-weight: 300; line-height: 1; font-variant-numeric: tabular-nums; }
+    .lt .lv { font-family: var(--hisho-serif); font-size: 2.6em; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
     .lt .lv small { font-size: 0.42em; color: var(--hisho-text-2); margin-left: 3px; font-weight: 400; }
     .lt .ll { margin-top: 6px; font-size: 0.86em; font-weight: 500; }
     .lt .ls { font-size: 0.76em; color: var(--hisho-text-2); }
@@ -75,5 +76,44 @@ export class HishoPulseCard extends HishoCard {
       ${tile(nConflicts ? "warn" : "ok", nConflicts ?? "–", "", "Sync conflicts", nConflicts ? "Files to sort out" : "None",
         nConflicts ? mdiFileAlertOutline : mdiCheckDecagramOutline, conflicts?.entity_id, "var(--hisho-brown-text)")}
     </div>`);
+  }
+}
+
+/** hisho-load-card: how loaded the running machines are, as the brief's thin lines: a label, the number, a hairline
+ *  filled to it (amber from 80%, red from 95%). The GPU on a GPU machine, else memory; the busiest first.
+ *    type: custom:hisho-load-card
+ *    limit: 4            # lines shown (default 4) */
+export class HishoLoadCard extends HishoCard {
+  static styles: CSSResultGroup = [cardStyles, css`
+    .ln { padding: 7px 0 0; cursor: pointer; }
+    .ln .top { display: flex; justify-content: space-between; gap: 10px; font-size: 0.95em; color: var(--hisho-text-2); }
+    .ln .v { font-family: var(--hisho-mono); color: var(--hisho-text); }
+    .ln .bar { position: relative; height: 1px; margin: 8px 0 6px; background: var(--hisho-line); }
+    .ln .bar span { position: absolute; left: 0; top: -1px; height: 2px; background: var(--hisho-text); }
+    .ln.warn .bar span { background: var(--hisho-warn); } .ln.bad .bar span { background: var(--hisho-crit); }
+  `];
+
+  static getStubConfig() {
+    return { type: "custom:hisho-load-card" };
+  }
+
+  protected body() {
+    const hass = this.hass;
+    const lines: [HishoDevice, string, number, string][] = [];
+    for (const m of byKind(hass, "machine")) {
+      if (entity(hass, m, "online")?.state !== "on") continue;
+      for (const [key, label] of (/gpu/i.test(m.model) ? [["gpu_usage", "GPU"], ["memory_usage", "memory"]] : [["memory_usage", "memory"]])) {
+        const s = entity(hass, m, key), v = pct(s?.state);
+        if (s && v !== undefined) { lines.push([m, label, v, s.entity_id]); break; }
+      }
+    }
+    lines.sort((a, b) => b[2] - a[2]);
+    const shown = lines.slice(0, this.config.limit ?? 4);
+    return this.frame(html`${this.heading("Load")}
+      ${shown.length ? shown.map(([m, label, v, id]) => html`<div class="ln ${v >= 95 ? "bad" : v >= 80 ? "warn" : ""}"
+          @click=${() => moreInfo(this, id)}>
+        <div class="top"><span>${shortName(m.name)} ${label}</span><span class="v">${Math.round(v)}%</span></div>
+        <div class="bar"><span style="width:${v}%"></span></div></div>`)
+      : html`<div class="empty">No running machine reports its load.</div>`}`);
   }
 }

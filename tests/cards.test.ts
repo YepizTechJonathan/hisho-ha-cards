@@ -3,7 +3,7 @@ import "../src/index";
 import { fakeHass } from "./fake-hass";
 import { hishoDevices } from "../src/model";
 import { generateDashboard } from "../src/strategy";
-import { HA_CARD_GLASS, viewBackground } from "../src/styles";
+import { HA_CARD_GLASS } from "../src/styles";
 import { trustBy, trustDetail } from "../src/cards/setup-card";
 
 async function mount(tag: string, config: Record<string, any>, hass = fakeHass()) {
@@ -72,8 +72,15 @@ describe("the Hisho dashboard strategy", () => {
   it("builds a view per area from what the integration reports", () => {
     const dash = generateDashboard(fakeHass());
     expect(dash.views.map((v) => v.path)).toEqual(["overview", "machines", "devices", "addons", "today", "projects", "conversations", "phone"]);
-    // the Overview is the Control Center, full width; the rest are sections views (columns that fill the screen)
-    expect(dash.views[0]).toMatchObject({ type: "panel", cards: [{ type: "custom:hisho-control-center-card" }] });
+    // the Overview is Hisho's Home in HA's own pieces: a greeting in the header, the status counts as badges, then the
+    // brief (needs you, today, Ask Hisho) two columns wide beside the ledger (machines, load)
+    const home = dash.views[0];
+    expect(home).toMatchObject({ type: "sections", max_columns: 3, header: { card: { type: "markdown", text_only: true } } });
+    expect(home.header!.card).toMatchObject({ content: expect.stringContaining("# Good {{") });
+    expect(home.badges!.map((b) => b.name)).toEqual(["machines up", "need you", "jobs"]);
+    expect(home.sections!.map((s) => [s.column_span, s.cards.map((c) => c.type)])).toEqual([
+      [2, ["custom:hisho-needs-you-card", "todo-list", "custom:hisho-ask-card"]],
+      [undefined, ["custom:hisho-fleet-card", "custom:hisho-load-card"]]]);
     expect(dash.views.slice(1).every((v) => v.type === "sections" && v.max_columns === 4)).toBe(true);
     const cards = (i: number) => dash.views[i].sections!.map((s) => s.cards);
     expect(cards(1)[0]).toEqual([{ type: "custom:hisho-pulse-card", grid_options: { columns: "full" } }]); // the pulse first
@@ -129,12 +136,14 @@ describe("the Hisho dashboard strategy", () => {
     expect(generateDashboard(fakeHass()).views.some((v) => v.path === "kids")).toBe(false);
   });
 
-  it("puts every view on the forest picture, or on a picture of your own", () => {
+  it("puts every view on the brief's warm black, or on a picture of your own; in the Hisho theme when HA has it", () => {
     const own = generateDashboard(fakeHass(), { background: "/local/lake.jpg" });
-    expect(new Set(generateDashboard(fakeHass()).views.map((v) => v.background))).toEqual(new Set([viewBackground()]));
-    expect(viewBackground()).toContain('url("/hisho_static/forest.jpg")');
+    expect(new Set(generateDashboard(fakeHass()).views.map((v) => v.background))).toEqual(new Set(["#0B0A09"]));
     expect(own.views[3].background).toContain('url("/local/lake.jpg")');
-    expect(generateDashboard(fakeHass(), { background: "" }).views[0].background).not.toContain("url(");
+    expect(generateDashboard(fakeHass()).views[0].theme).toBeUndefined();
+    const themed = fakeHass() as any;
+    themed.themes = { darkMode: true, themes: { Hisho: {} } };
+    expect(new Set(generateDashboard(themed).views.map((v) => v.theme))).toEqual(new Set(["Hisho"]));
   });
 
   it("has a Conversations view with the conversations card across it", () => {
@@ -235,6 +244,15 @@ describe("control center", () => {
   });
 });
 
+describe("load card", () => {
+  it("draws the running machines' load as lines, the busiest first", async () => {
+    const { root } = await mount("hisho-load-card", {});
+    const lines = [...root.querySelectorAll(".ln .top")].map((t) => t.textContent!.replace(/\s+/g, " ").trim());
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines[0]).toMatch(/^(Ren|Souko) (memory|GPU) ?\d+%$/);
+  });
+});
+
 describe("pulse card", () => {
   it("shows the fleet's numbers with their last day", async () => {
     const { root } = await mount("hisho-pulse-card", {});
@@ -245,28 +263,42 @@ describe("pulse card", () => {
   });
 });
 
-describe("machine tiles", () => {
-  it("opens a machine tile for its details on a tap", async () => {
+/** Open a rack row of the fleet card (its readings and power links). */
+async function openRow(el: any, root: ParentNode, n = 0) {
+  (root.querySelectorAll(".rack")[n] as HTMLElement).click();
+  await el.updateComplete;
+}
+
+describe("machine rows", () => {
+  it("opens a machine's row for its readings and links on a tap", async () => {
     const { el, root } = await mount("hisho-fleet-card", {});
     expect(root.querySelector(".kv")).toBeNull();
-    (root.querySelector(".tile .mhead") as HTMLElement).click();
-    await el.updateComplete;
-    expect(root.querySelector(".tile .kv")).not.toBeNull();
+    await openRow(el, root);
+    expect(root.querySelector(".open .kv")).not.toBeNull();
+  });
+
+  it("can show only the lights (name and state), for a narrow column", async () => {
+    const { root } = await mount("hisho-fleet-card", { look: "lights" });
+    expect([...root.querySelectorAll(".lights .rack .n")].map((n) => n.textContent)).toEqual(["Ren", "Souko"]);
+    expect(root.querySelector(".rack .s")).toBeNull();
   });
 });
 
 describe("fleet card", () => {
   it("shows machines and wakes without asking", async () => {
-    const { root, hass } = await mount("hisho-fleet-card", {});
-    expect(root.textContent).toContain("Hashira Ren");
+    const { el, root, hass } = await mount("hisho-fleet-card", {});
+    expect(root.textContent).toContain("Ren");
+    expect(root.textContent).not.toContain("Hashira Ren"); // the brief's short name
     expect(root.textContent).toContain("parks in 16m");
+    await openRow(el, root);
     button(root, "Wake").click();
     await new Promise((r) => setTimeout(r, 0));
     expect(runs(hass)).toEqual([{ action: "machine.wake", target: "hashira-ren", args: {}, confirm: false }]);
   });
 
   it("asks before parking; Cancel sends nothing, Yes sends it confirmed", async () => {
-    const { root, hass } = await mount("hisho-fleet-card", {});
+    const { el, root, hass } = await mount("hisho-fleet-card", {});
+    await openRow(el, root);
     button(root, "Park").click();
     await answer(root, false);
     expect(runs(hass)).toEqual([]);
@@ -301,6 +333,7 @@ describe("needs-you card", () => {
     expect(root.textContent).toContain("pool Potter is unhealthy");
     expect(root.textContent).toContain("Claude: Disk sdh");
     expect(root.textContent).not.toContain("IONOS: updates");
+    expect(root.querySelector(".nth")!.textContent).toBe("一"); // numbered as the brief numbers them
     button(root, "Acknowledge").click();
     await new Promise((r) => setTimeout(r, 0));
     expect(runs(hass)).toEqual([{ action: "alert.ack", target: "a1", args: {}, confirm: false }]);

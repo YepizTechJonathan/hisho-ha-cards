@@ -31,25 +31,30 @@ own. To change it, ⋮ › *Take control* and edit it like any dashboard.
 
 ### The look
 
-Dark glass cards over a misty pine forest at dusk, with forest green and warm brown accents. The picture comes with
-the Hisho integration (v1.7.0 or later, served at `/hisho_static/forest.jpg`; without it the dashboard shows the same
-colours as a gradient). To use a photo of your own, put it in `config/www/` and give the strategy its address:
+Hisho's own look, the secretary's brief: warm black, crimson, Shippori Mincho headings, Inter Tight text, IBM Plex
+Mono for machine names and numbers, hairline rules instead of card boxes, text links instead of buttons. The
+**Overview** is Hisho's Home built from Home Assistant's own pieces: a greeting in the view's header (a Markdown card),
+the status counts as badges, then what needs you (numbered 一, 二, 三), today's list and Ask Hisho, beside the
+machines as a rack list, their load as thin lines and Money (the Invoicing add-on's card).
+
+The fonts and a matching **Hisho theme** come with the Hisho integration (v1.20.0 or later); the dashboard uses the
+theme on its own views, and any other dashboard can too (Profile › Theme › Hisho, or `theme: Hisho` on a view).
+With [card-mod](https://github.com/thomasloven/lovelace-card-mod) installed, Home Assistant's own cards get the
+hairlines too. For a picture behind the dashboard, put it in `config/www/` and give the strategy its address:
 
 ```yaml
 strategy:
   type: custom:hisho
-  background: /local/my-photo.jpg   # or "" for no picture
+  background: /local/my-photo.jpg
 ```
-
-With [card-mod](https://github.com/thomasloven/lovelace-card-mod) installed, Home Assistant's own cards on the dashboard
-(Today's list, the calendar, the phone settings) wear the same glass. A theme can change the accents through
-`--hisho-theme-accent`, `--hisho-theme-brown` and `--hisho-theme-glass`.
 
 ## Cards
 
 | Card | Shows | Does |
 |---|---|---|
-| `custom:hisho-fleet-card` | every machine: state, readings, parking | wake, park, maintenance (machine and fleet) |
+| `custom:hisho-fleet-card` | every machine as a rack list, grouped by area (`look: lights` for only the lights) | a tap opens its readings: wake, park, maintenance (machine and fleet) |
+| `custom:hisho-load-card` | the running machines' memory or GPU as thin lines, busiest first (`limit:`) | a tap opens the reading's history |
+| `custom:hisho-ask-card` | Ask Hisho anything, the answer under it | — |
 | `custom:hisho-machine-card` (`machine: Souko`) | one machine in full: readings, services, add-on items | wake/park, start/stop/restart services, add-on buttons, maintenance |
 | `custom:hisho-needs-you-card` | Hisho's needs-you list with Claude's findings | acknowledge, snooze, investigate, send to phone |
 | `custom:hisho-device-card` (`device: truenas`) | a box an add-on knows, or an add-on | its add-on buttons (VM start/shut down...), maintenance, add-on on/off |

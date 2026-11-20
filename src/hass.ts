@@ -37,7 +37,8 @@ export interface HomeAssistant {
               notifyOnError?: boolean, returnResponse?: boolean): Promise<any>;
   callWS<T = any>(msg: Record<string, any>): Promise<T>;
   callApi?<T = any>(method: "GET" | "POST", path: string, data?: Record<string, any>): Promise<T>;
-  themes?: { darkMode?: boolean };
+  themes?: { darkMode?: boolean; themes?: Record<string, unknown> };
+  areas?: Record<string, { area_id: string; name: string }>;
   config?: { time_zone?: string };
   locale?: { language?: string };
   user?: { id: string; name: string; is_admin: boolean };

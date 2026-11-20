@@ -1,61 +1,59 @@
-// One look for every Hisho card: dark glass over a forest picture, forest green and warm brown accents, big thin
-// numbers, calm state colours. It is Hisho's own look, so it does not follow the HA theme's colours; a theme or
-// card-mod can still change it through the --hisho-theme-* variables (accent, brown, glass).
-import { css } from "lit";
+// One look for every Hisho card, the secretary's brief (Hisho's own dashboard): warm black, crimson, Shippori Mincho
+// headings, Inter Tight text, IBM Plex Mono for machine names and numbers, hairline rules instead of boxes, text links
+// instead of buttons. The fonts and the matching Home Assistant theme ("Hisho") come with the hisho integration; a
+// theme or card-mod can still change the accent through the --hisho-theme-* variables.
+import { css, type CSSResultGroup } from "lit";
 
-/** Where the hisho integration serves the dashboard's picture (a misty pine forest at dusk, art/forest.mjs). */
-export const DEFAULT_PICTURE = "/hisho_static/forest.jpg";
-
-/** The Hisho dashboard's background (the strategy sets it on every view): the picture, darkened a little so glass
- *  cards read on it, over the same colours as a gradient (what shows if the picture is missing). */
-export function viewBackground(picture: string = DEFAULT_PICTURE): string {
-  const pic = picture ? `linear-gradient(rgba(6, 10, 7, 0.22), rgba(6, 10, 7, 0.5)), url("${picture}") center / cover no-repeat, ` : "";
-  return `${pic}linear-gradient(180deg, #0a110d 0%, #1b2219 45%, #4a3a27 62%, #121a13 80%, #0a100b 100%) fixed`;
+/** The Hisho dashboard's background (the strategy sets it on every view): the brief's warm black. A picture can
+ *  still be given ("/local/my-photo.jpg"); "" or nothing means the plain black. */
+export function viewBackground(picture = ""): string {
+  return picture ? `linear-gradient(rgba(11, 10, 9, 0.6), rgba(11, 10, 9, 0.85)), url("${picture}") center / cover no-repeat fixed, #0B0A09`
+    : "#0B0A09";
 }
 
-/** The same glass for Home Assistant's own cards on the Hisho dashboard (applied with card-mod, when installed). */
+/** Home Assistant's own cards on the Hisho dashboard in the same look when card-mod is installed (the Hisho theme
+ *  does this for every dashboard; this is for a Home Assistant without the theme selected). */
 export const HA_CARD_GLASS =
-  "ha-card { background: rgba(14, 20, 16, 0.6); backdrop-filter: blur(20px) saturate(140%); " +
-  "-webkit-backdrop-filter: blur(20px) saturate(140%); border: 1px solid rgba(255, 255, 255, 0.09); " +
-  "border-radius: 22px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35); --primary-text-color: #eef0ea; " +
-  "--secondary-text-color: #a7ae9f; --divider-color: rgba(255, 255, 255, 0.08); --primary-color: #5f9e74; " +
+  "ha-card { background: transparent; border: none; border-top: 1px solid #26231F; border-radius: 0; box-shadow: none; " +
+  "--primary-text-color: #ECE6DC; --secondary-text-color: #8C857B; --divider-color: #26231F; --primary-color: #DC143C; " +
   "--card-background-color: transparent; --ha-card-background: transparent; }";
 
-export const cardStyles = css`
+const baseStyles = css`
   :host {
     display: block;
-    /* Forest green and warm brown; the state colours sit in the same earthy family. */
-    --hisho-accent: var(--hisho-theme-accent, #3f7d58);
-    --hisho-accent-text: var(--hisho-theme-accent-text, #8cc7a1);
-    --hisho-brown: var(--hisho-theme-brown, #9c7148);
-    --hisho-brown-text: var(--hisho-theme-brown-text, #d4ab7c);
+    --hisho-accent: var(--hisho-theme-accent, #DC143C);
+    --hisho-accent-text: var(--hisho-theme-accent-text, #DC143C);
+    --hisho-brown: var(--hisho-theme-brown, #8C857B);
+    --hisho-brown-text: var(--hisho-theme-brown-text, #8C857B);
     --hisho-accent-2: var(--hisho-brown);
-    --hisho-ok: #6fbf8a;
-    --hisho-warn: #dba64b;
-    --hisho-crit: #e06a5f;
-    --hisho-decide: #93aed0;
-    --hisho-off: #848b7e;
-    --hisho-glass: var(--hisho-theme-glass, rgba(14, 20, 16, 0.6));
-    --hisho-inset: rgba(255, 255, 255, 0.045);
-    --hisho-inset-hi: rgba(255, 255, 255, 0.085);
-    --hisho-edge: rgba(255, 255, 255, 0.09);
-    --hisho-line: rgba(255, 255, 255, 0.07);
-    --hisho-soft: rgba(255, 255, 255, 0.06);
-    --hisho-text: #eef0ea;
-    --hisho-text-2: #a7ae9f;
-    --hisho-radius: 16px;
-    --hisho-radius-lg: 22px;
+    --hisho-ok: #3FB97A;
+    --hisho-warn: #E0A030;
+    --hisho-crit: #E8364F;
+    --hisho-decide: #DC143C;
+    --hisho-off: #4A4640;
+    --hisho-glass: var(--hisho-theme-glass, transparent);
+    --hisho-inset: transparent;
+    --hisho-inset-hi: rgba(236, 230, 220, 0.04);
+    --hisho-edge: #26231F;
+    --hisho-line: #26231F;
+    --hisho-soft: transparent;
+    --hisho-text: #ECE6DC;
+    --hisho-text-2: #8C857B;
+    --hisho-faint: #4A4640;
+    --hisho-radius: 0;
+    --hisho-radius-lg: 0;
+    --hisho-serif: "Shippori Mincho", "Noto Serif JP", Georgia, serif;
+    --hisho-ui: "Inter Tight", system-ui, sans-serif;
+    --hisho-mono: "IBM Plex Mono", ui-monospace, monospace;
     color: var(--hisho-text);
-    font-family: var(--ha-font-family-body, var(--paper-font-body1_-_font-family, Roboto, system-ui, sans-serif));
+    font-family: var(--hisho-ui);
     /* HA's own elements inside a card (dialogs aside) read these. */
     --primary-text-color: var(--hisho-text);
     --secondary-text-color: var(--hisho-text-2);
   }
   ha-card {
-    padding: 16px 18px; container-type: inline-size; color: var(--hisho-text);
-    background: var(--hisho-glass); border: 1px solid var(--hisho-edge); border-radius: var(--hisho-radius-lg);
-    backdrop-filter: blur(20px) saturate(140%); -webkit-backdrop-filter: blur(20px) saturate(140%);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    padding: 4px 0 8px; container-type: inline-size; color: var(--hisho-text);
+    background: transparent; border: none; border-radius: 0; box-shadow: none;
   }
   .embedded { container-type: inline-size; }
   /* One machine in full: side by side when there's room (readings | services), stacked when not. */
@@ -253,3 +251,53 @@ export function pct(value: string | undefined): number | undefined {
   const n = value === undefined ? NaN : parseFloat(value);
   return Number.isFinite(n) ? Math.max(0, Math.min(100, n)) : undefined;
 }
+
+/** The brief's flat look over the shared pieces above: rows on hairlines instead of boxes, plain words in their colour
+ *  instead of chips, text links instead of buttons, numbers in the mono face. */
+const briefStyles = css`
+  .title, .eyebrow { font-family: var(--hisho-ui); font-size: 0.78em; font-weight: 700; letter-spacing: 0.16em;
+    text-transform: uppercase; color: var(--hisho-faint); }
+  .head { margin-bottom: 6px; }
+  .num, .kv > span:nth-child(even) { font-family: var(--hisho-mono); }
+  .tile { background: none; border: none; border-top: 1px solid var(--hisho-line); border-radius: 0; padding: 12px 0; }
+  .tile::before { display: none; }
+  .tile:hover { background: none; }
+  ul.list { gap: 0; }
+  ul.list > li { background: none; border: none; border-top: 1px solid var(--hisho-line); border-radius: 0; padding: 14px 0; }
+  ul.list > li.item::before { display: none; }
+  ul.list > li.item, ul.list > li.bubbled { padding-left: 0; }
+  .chip { background: none; padding: 0; font-weight: 500; letter-spacing: 0; color: var(--c); }
+  .chip.off { color: var(--hisho-text-2); }
+  .chip::before { width: 8px; height: 8px; }
+  .chip.plain { color: var(--hisho-text-2); }
+  .bubble { background: none; width: 26px; height: 26px; }
+  .bubble.pulse { animation: none; }
+  .dot.on { box-shadow: none; }
+  button.act, button.more { background: none; border: none; border-radius: 0; box-shadow: none; padding: 6px 0; margin-right: 22px;
+    font-size: 1em; font-weight: 400; color: var(--hisho-text-2); }
+  button.act svg, button.more svg { display: none; }
+  button.act:hover, button.more:hover { background: none; border: none; color: var(--hisho-text); }
+  button.act.on, button.act.primary { background: none; box-shadow: none; color: var(--hisho-accent); font-weight: 500; }
+  button.act.danger { color: var(--hisho-crit); }
+  button.act.brown { background: none; color: var(--hisho-warn); }
+  button.link { color: var(--hisho-text-2); }
+  button.link:hover { color: var(--hisho-text); }
+  form.addrow input, form.ask input { background: none; border: none; border-bottom: 1px solid var(--hisho-faint); border-radius: 0;
+    padding: 10px 0; }
+  form.ask .bubble { display: none; }
+  form.ask input { font-family: var(--hisho-serif); font-size: 1.35em; }
+  form.ask input::placeholder { color: var(--hisho-faint); }
+  button.send { background: none; color: var(--hisho-text-2); }
+  .answer .q { background: none; border-right: 2px solid var(--hisho-accent); border-radius: 0; }
+  .answer .a { background: none; border-left: 1px solid var(--hisho-line); border-radius: 0; font-family: var(--hisho-serif); font-size: 1.05em; }
+  button.tick { border-color: var(--hisho-text-2); border-radius: 3px; width: 18px; height: 18px; }
+  button.tick:hover { background: none; border-color: var(--hisho-accent); }
+  ul.dues .when { color: var(--hisho-text-2); font-family: var(--hisho-mono); }
+  .ring .track { stroke: var(--hisho-line); }
+  .ring .val { filter: none; }
+  .ring .rv { font-family: var(--hisho-mono); font-size: 0.9em; }
+  .empty svg { fill: var(--hisho-ok); }
+`;
+
+/** Every Hisho card's styles: the shared pieces, then the brief's flat look over them. */
+export const cardStyles: CSSResultGroup = [baseStyles, briefStyles];

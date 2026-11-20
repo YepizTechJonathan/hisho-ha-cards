@@ -6,6 +6,7 @@ import {
   mdiProgressClock, mdiTimerSandEmpty,
 } from "@mdi/js";
 import type { HomeAssistant } from "../hass";
+import { HishoCard } from "../base";
 import { byKind, entity, entityId, hub } from "../model";
 import { cardStyles } from "../styles";
 import { icon } from "../ui";
@@ -216,6 +217,17 @@ export class HishoAsk extends LitElement {
       </form>
       ${this.asked ? html`<div class="answer"><div class="q">${this.asked}</div>
         <div class="a">${this.busy ? html`<span class="thinking">${icon(mdiProgressClock, "")}Thinking…</span>` : this.answer}</div></div>` : ""}`;
+  }
+}
+
+/** hisho-ask-card: Ask Hisho as a card of its own (the Overview's last line). */
+export class HishoAskCard extends HishoCard {
+  getCardSize(): number {
+    return 1;
+  }
+
+  protected body(): TemplateResult {
+    return this.frame(html`<hisho-ask .hass=${this.hass}></hisho-ask>`);
   }
 }
 
